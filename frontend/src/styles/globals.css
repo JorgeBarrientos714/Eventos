@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 1) fuentes personalizadas */
+@font-face {
+  font-family: "Exo";
+  src: url("/fonts/Exo-Bold.otf") format("opentype"),
+       url("/fonts/exo-bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Exo";
+  src: url("/fonts/Exo-ExtraBold.otf") format("opentype"),
+       url("/fonts/exo-extrabold.otf") format("opentype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* PALETA */
+:root {
+  --color-brand-50:  #e6f2f0;
+  --color-brand-100: #c2d9d4;
+  --color-brand-200: #9cbfb8;
+  --color-brand-300: #76a59c;
+  --color-brand-400: #508c81;
+  --color-brand-500: #2a7266;
+  --color-brand-600: #15594f;
+  --color-brand-700: #0f4f46;
+  --color-brand-800: #084b41;
+  --color-brand-900: #05322c;
+
+  --color-accent-50:  #fbf5e7;
+  --color-accent-100: #f5e8c7;
+  --color-accent-200: #efdba9;
+  --color-accent-300: #e9ce8b;
+  --color-accent-400: #e3c26f;
+  --color-accent-500: #dcc594;
+
+  --color-base:       #ffffff;
+  --color-base-50:    #fafaf9;
+
+  --color-ink-900:    #111827;
+  --color-ink-700:    #374151;
+  --color-ink-500:    #6b7280;
+}
+
+/* BASE GLOBAL */
+body {
+  background: var(--color-base-50);
+  color: var(--color-ink-900);
+  font-family: "Exo", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* ---------- capas tailwind ---------- */
+@layer base {
+  h1 {
+    @apply text-2xl;
+    color: var(--color-brand-800);
+    font-family: "Exo", system-ui, -apple-system, sans-serif;
+    font-weight: 800;
+  }
+  h2 {
+    @apply text-xl;
+    color: var(--color-ink-900);
+    font-family: "Exo", system-ui, -apple-system, sans-serif;
+    font-weight: 700;
+  }
+}
+
+/* COMPONENTES REUTILIZABLES */
+@layer components {
+  .page-shell {
+    @apply w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6;
+  }
+
+  .panel {
+    @apply bg-white rounded-lg border shadow-sm;
+    border-color: rgba(230, 242, 240, 0.7);
+  }
+
+  .label-base {
+    @apply block text-sm font-medium mb-1;
+    color: var(--color-ink-700);
+  }
+
+  .input-base {
+    @apply w-full border rounded-lg px-3 py-2 text-sm bg-white;
+    @apply focus:outline-none focus:ring-2;
+    --tw-ring-color: rgba(118, 165, 156, 0.45);
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white;
+    background: var(--color-brand-800);
+  }
+  .btn-primary:hover {
+    background: var(--color-brand-700);
+  }
+  .btn-primary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium border bg-white;
+    color: var(--color-ink-700);
+  }
+  .btn-secondary:hover {
+    background: rgba(230, 242, 240, 0.3);
+  }
+
+  .section-title {
+    @apply text-sm font-semibold;
+    color: var(--color-ink-700);
+  }
+  .section-subtitle {
+    @apply text-xs;
+    color: var(--color-ink-500);
+  }
+
+  .divider {
+    @apply border-t;
+    border-color: rgba(250, 250, 249, 0.8);
+  }
+}
+
+@layer utilities {
+  .bg-brand {
+    background: var(--color-brand-800);
+  }
+  .text-brand {
+    color: var(--color-brand-800);
+  }
+  .text-brand {
+  color: var(--color-brand-800);
+}
+.bg-brand {
+  background-color: var(--color-brand-800);
+}
+
+}
+
+

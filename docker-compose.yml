@@ -1,0 +1,32 @@
+services:
+  backend:
+    build: ./backend
+    container_name: inprema-backend
+    ports:
+      - "4000:3000"
+    networks:
+      - inprema-net
+
+  frontend:
+    build: ./frontend
+    container_name: inprema-frontend
+    depends_on:
+      - backend
+    networks:
+      - inprema-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: inprema-nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+    networks:
+      - inprema-net
+
+networks:
+  inprema-net:
+    driver: bridge

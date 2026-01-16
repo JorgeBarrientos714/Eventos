@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-size: 16px;
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --primary: #0d7d6e;
+  --primary-foreground: #ffffff;
+  --secondary: #ececf0;
+  --secondary-foreground: #0a0a0a;
+  --muted: #f5f5f7;
+  --muted-foreground: #717182;
+  --accent: #e9ebef;
+  --accent-foreground: #030213;
+  --destructive: #d4183d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0,0,0,0.1);
+  --input: transparent;
+  --ring: #3b82f6;
+  --radius: 0.625rem;
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+}
+
+/* Fondo global para pantallas de eventos (excluye carnetización) */
+/* Contenedor raíz para apilar fondo fijo + contenido */
+.events-shell {
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Capa de fondo fija (no se desplaza) */
+.events-bg-fixed {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: cover;
+  /* Ajuste para "subir" la imagen y mostrar más la parte inferior */
+  background-position: center -500px;
+}
+
+/* Contenido por encima del fondo */
+.events-content {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+/* Ajustes responsive para mejorar el encuadre en pantallas grandes */
+@media (min-width: 768px) {
+  .events-bg-fixed {
+    background-position: center -180px;
+  }
+}
+@media (min-width: 1280px) {
+  .events-bg-fixed {
+    background-position: center -240px;
+  }
+}
+/* Fondo global del sitio (aplica a todas las páginas) */
+.site-bg {
+  background-image: url("../assets/Edificio%20Color%20Blanco.jpg");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
