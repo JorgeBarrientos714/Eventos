@@ -1,51 +1,20 @@
+// Módulo: global/public
+// Función: Composición de la página Home pública (carruseles y listados) - ahora con datos reales
+// Relacionados: HeroBanner, NetflixCarousel, EventCard, pages/index.tsx
+// Rutas/Endpoints usados: GET /eventos/evento/todos via lib/events
+// Notas: No se renombra para conservar imports.
 import { NetflixCarousel } from './NetflixCarousel';
+import { EventModal } from './EventModal';
+import { useEffect, useState } from 'react';
 import type { Event } from '../types/event';
+import { getAllEvents } from '../lib/events';
+import { docenteAuth } from '../lib/authDocente';
 
 interface HomeProps {
   onNavigate?: (page: string) => void;
   searchQuery?: string;
   events?: Event[];
 }
-
-// Mock data para Próximos Eventos - Mostrar algunos de cada área
-const upcomingEvents = [
-  {
-    id: 1,
-    title: 'Jornada Recreativa 1',
-    area: 'Terapia Ocupacional',
-    image: 'https://images.unsplash.com/photo-1761456309232-a1416c392687?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGRlcmx5JTIwcGVvcGxlJTIwZXZlbnQlMjBjZWxlYnJhdGlvbnxlbnwxfHx8fDE3NjgyMzgxODB8MA&ixlib=rb-4.1.0&q=80&w=1080',
-  },
-  {
-    id: 2,
-    title: 'Campamento por la Vida 1',
-    area: 'Psicología',
-    image: 'https://images.unsplash.com/photo-1582500347014-3fbe150ed85a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzb2NjZXIlMjBmb290YmFsbCUyMHRvdXJuYW1lbnR8ZW58MXx8fHwxNzY4MjM4MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080',
-  },
-  {
-    id: 3,
-    title: 'Visita Domiciliaria Integral',
-    area: 'Trabajo Social',
-    image: 'https://images.unsplash.com/photo-1739285452629-2672b13fa42d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFsdGglMjBtZWRpY2FsJTIwY2hlY2t1cHxlbnwxfHx8fDE3NjgyMzgxODF8MA&ixlib=rb-4.1.0&q=80&w=1080',
-  },
-  {
-    id: 4,
-    title: 'Taller de Manualidades',
-    area: 'Terapia Ocupacional',
-    image: 'https://images.unsplash.com/photo-1611257309952-1389bc301a72?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYWludGluZyUyMGFydCUyMGNsYXNzfGVufDF8fHx8MTc2ODIzNDc5N3ww&ixlib=rb-4.1.0&q=80&w=1080',
-  },
-  {
-    id: 5,
-    title: 'Jornada Navideña',
-    area: 'Terapia Ocupacional',
-    image: 'https://images.unsplash.com/photo-1734027851931-6e06637151ed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjaHJpc3RtYXMlMjBkaW5uZXIlMjBjZWxlYnJhdGlvbnxlbnwxfHx8fDE3NjgyMzgxODJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-  },
-  {
-    id: 6,
-    title: 'Cuidado al Cuidador 1',
-    area: 'Psicología',
-    image: 'https://images.unsplash.com/photo-1739285452629-2672b13fa42d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFsdGglMjBtZWRpY2FsJTIwY2hlY2t1cHxlbnwxfHx8fDE3NjgyMzgxODF8MA&ixlib=rb-4.1.0&q=80&w=1080',
-  },
-];
 
 // Mock data para Clases
 const classes = [
@@ -74,6 +43,41 @@ const announcements = [
 ];
 
 export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
+  const [upcomingEvents, setUpcomingEvents] = useState<Array<{ id: string | number; title: string; area: string; image: string }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [allEventsData, setAllEventsData] = useState<Event[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [docenteNombre, setDocenteNombre] = useState<string>('');
+  const [dniInput, setDniInput] = useState<string>('');
+
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      try {
+        const [eventos, me] = await Promise.all([
+          getAllEvents(),
+          docenteAuth.me().catch(() => null),
+        ]);
+        setAllEventsData(eventos);
+        const mapped = eventos.map(e => ({
+          id: e.id,
+          title: e.title,
+          area: e.category,
+          image: e.image,
+        }));
+        setUpcomingEvents(mapped);
+        if (me?.nombreCompleto) setDocenteNombre(me.nombreCompleto);
+      } catch (error) {
+        console.error('Error al cargar eventos:', error);
+        setUpcomingEvents([]);
+        setAllEventsData([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
   // Filtrar eventos/clases por búsqueda
   const filteredUpcomingEvents = upcomingEvents.filter((event) => {
     if (!searchQuery) return true;
@@ -90,8 +94,66 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
 
   return (
     <div className="pb-0 pt-0">
+      {/* Sección de Identificación de Docente */}
+      <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 pt-8 pb-6">
+        <div className="bg-gradient-to-r from-[#0d7d6e] to-[#0ead93] rounded-2xl p-6 md:p-8 shadow-lg">
+          <h2 className="text-white text-2xl md:text-3xl mb-4" style={{ fontWeight: 700 }}>
+            Identifícate como docente
+          </h2>
+          <p className="text-white/90 mb-6">Ingresa tu DNI para ver eventos y tus inscripciones personalizadas</p>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const dni = dniInput.trim();
+              if (!dni) return;
+              try {
+                const res = await docenteAuth.iniciarSesion(dni);
+                setDocenteNombre(res.docente?.nombreCompleto || '');
+                setDniInput('');
+                window.location.reload();
+              } catch (err: any) {
+                alert(err?.message || 'No fue posible identificar al docente');
+              }
+            }}
+            className="flex flex-col sm:flex-row items-center gap-3"
+          >
+            <input
+              type="text"
+              placeholder="Ingresa tu DNI"
+              value={dniInput}
+              onChange={(e) => setDniInput(e.target.value)}
+              className="flex-1 px-4 py-3 rounded-full border-0 focus:outline-none text-base"
+            />
+            <button
+              type="submit"
+              className="w-full sm:w-auto rounded-full bg-white text-[#0d7d6e] px-6 py-3 font-semibold transition hover:bg-gray-100"
+            >
+              Identificarme
+            </button>
+            {docenteNombre && (
+              <button
+                type="button"
+                onClick={() => {
+                  docenteAuth.clearToken();
+                  setDocenteNombre('');
+                  window.location.reload();
+                }}
+                className="w-full sm:w-auto rounded-full border-2 border-white text-white px-6 py-3 font-semibold transition hover:bg-white/10"
+              >
+                Cambiar docente
+              </button>
+            )}
+          </form>
+          {docenteNombre && (
+            <p className="text-white/80 mt-4 text-sm">
+              ✓ Identificado como: <span style={{ fontWeight: 600 }}>{docenteNombre}</span>
+            </p>
+          )}
+        </div>
+      </div>
+
       {/* Hero Banner */}
-      <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 pt-8 pb-8">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 pb-8">
         <div className="relative h-[250px] md:h-[292px] rounded-[28px] overflow-hidden shadow-xl">
           <img
             src={'https://images.unsplash.com/photo-1732023998275-95390af360ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080'}
@@ -159,7 +221,14 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
                   <h3 className="text-[#636363] text-[18px] mb-3" style={{ fontWeight: 700 }}>
                     {event.title}
                   </h3>
-                  <button className="border border-[#0e9c85] text-[#0e9c85] px-6 py-1.5 rounded-[27px] text-[16px] hover:bg-[#0e9c85] hover:text-white transition-colors" style={{ fontWeight: 700 }}>
+                  <button 
+                    onClick={() => {
+                      const fullEvent = allEventsData.find(e => e.id === event.id);
+                      if (fullEvent) setSelectedEvent(fullEvent);
+                    }}
+                    className="border border-[#0e9c85] text-[#0e9c85] px-6 py-1.5 rounded-[27px] text-[16px] hover:bg-[#0e9c85] hover:text-white transition-colors" 
+                    style={{ fontWeight: 700 }}
+                  >
                     Más información
                   </button>
                 </div>
@@ -244,6 +313,22 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
           ))}
         </div>
       </div>
+
+      {/* Event Modal */}
+      {selectedEvent && (
+        <EventModal 
+          event={selectedEvent} 
+          isRegistered={false}
+          onClose={() => setSelectedEvent(null)}
+          onRegister={() => {
+            if (onNavigate) {
+              onNavigate('events');
+            }
+            setSelectedEvent(null);
+          }}
+          onCancel={() => setSelectedEvent(null)}
+        />
+      )}
     </div>
   );
 }

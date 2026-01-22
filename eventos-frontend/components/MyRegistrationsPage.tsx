@@ -1,3 +1,8 @@
+// Módulo: global/public
+// Función: Página de inscripciones del docente/usuario
+// Relacionados: lib/registrations.ts, EventCard.tsx
+// Rutas/Endpoints usados: ninguno (usa localStorage)
+// Notas: No se renombra para conservar imports.
 import { Calendar, MapPin, Clock } from 'lucide-react';
 import type { Event } from '../types/event';
 import type { Registration } from '../types/teacher';

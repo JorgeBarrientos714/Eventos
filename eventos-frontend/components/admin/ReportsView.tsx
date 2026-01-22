@@ -1,3 +1,8 @@
+// Módulo: frontend-admin
+// Función: Vista de reportes y ocupación de eventos
+// Relacionados: AdminEventsDashboard, lib/admin/types.ts
+// Rutas/Endpoints usados: ninguno directo (usa datos cargados en memoria)
+// Notas: No se renombra para preservar imports.
 import { useMemo, useState } from 'react';
 import { ArrowLeft, Download } from 'lucide-react';
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';

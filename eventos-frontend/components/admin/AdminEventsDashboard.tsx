@@ -1,3 +1,8 @@
+// Módulo: frontend-admin
+// Función: Tablero de gestión de eventos (listar, registrar, reportes)
+// Relacionados: AdminLayout, AdminGuard, EventForm, RegisterModal, ReportsView, lib/admin/services.ts
+// Rutas/Endpoints usados: delega en adminServices (eventos/areas/evento/area)
+// Notas: No se renombra para mantener imports existentes.
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Users, ClipboardList, Edit, FileBarChart2 } from 'lucide-react';
 import { adminServices } from '../../lib/admin/services';
@@ -33,7 +38,8 @@ export function AdminEventsDashboard() {
   const [eventos, setEventos] = useState<AdminEvent[]>([]);
   const [docentes, setDocentes] = useState<AdminDocente[]>([]);
   const [registros, setRegistros] = useState<AdminRegistro[]>([]);
-  const [view, setView] = useState<ActiveViewState>({ type: 'list' });
+  type ViewState = ActiveViewState | FormViewState | ReportsViewState;
+  const [view, setView] = useState<ViewState>({ type: 'list' });
   const [registerState, setRegisterState] = useState<RegisterState>({ isOpen: false, evento: null });
 
   useEffect(() => {
@@ -83,18 +89,22 @@ export function AdminEventsDashboard() {
     setView(state);
   };
 
-  const handleFormSubmit = (values: AdminEventFormValues) => {
-    setEventos((prev) => {
-      if (values.id) {
-        return prev.map((evento) => (evento.id === values.id ? { ...evento, ...values } : evento));
-      }
-      const newEvento: AdminEvent = {
-        id: `${Date.now()}`,
-        ...values,
-        cuposDisponibles: values.cuposDisponibles ?? values.cuposTotales,
-      } as AdminEvent;
-      return [newEvento, ...prev];
-    });
+  const handleFormSubmit = async (values: AdminEventFormValues) => {
+    // Detectar si es edición o creación
+    const isEdit = view.type === 'form' && (view as FormViewState).target !== null;
+    
+    if (isEdit && view.type === 'form') {
+      // Actualizar evento existente
+      const formView = view as FormViewState;
+      await adminServices.updateEvento(formView.target!.id, values);
+    } else {
+      // Crear nuevo evento
+      await adminServices.createEvento(values);
+    }
+    
+    // Refrescar lista de eventos
+    const refreshed = await adminServices.listEventos();
+    setEventos(refreshed);
     setView({ type: 'list' });
   };
 
@@ -174,17 +184,18 @@ export function AdminEventsDashboard() {
   }
 
   if (view.type === 'form') {
+    const formView = view as FormViewState;
     return (
       <AdminLayout
-        title={view.target ? 'Editar evento' : 'Nuevo evento'}
-        description={view.target ? 'Actualiza la información del evento seleccionado.' : 'Completa los datos para publicar un nuevo evento.'}
+        title={formView.target ? 'Editar evento' : 'Nuevo evento'}
+        description={formView.target ? 'Actualiza la información del evento seleccionado.' : 'Completa los datos para publicar un nuevo evento.'}
       >
         <EventForm
-          evento={view.target ?? undefined}
+          evento={formView.target ?? undefined}
           areas={areas}
           departamentos={departamentos}
           onCancel={handleCloseForm}
-          onSubmit={(values) => handleFormSubmit({ ...values, id: view.target?.id })}
+          onSubmit={(values) => handleFormSubmit({ ...values, id: formView.target?.id })}
         />
       </AdminLayout>
     );
@@ -246,7 +257,8 @@ export function AdminEventsDashboard() {
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
+          <div className="w-full overflow-x-auto">
+          <table className="min-w-[900px] md:min-w-full divide-y divide-gray-200 text-sm">
             <thead className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
               <tr>
                 <th className="px-4 py-3">Evento</th>
@@ -295,7 +307,7 @@ export function AdminEventsDashboard() {
                       </span>
                     </td>
                     <td className="px-4 py-4">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
                         <button
                           type="button"
                           onClick={() => handleOpenRegister(evento)}
@@ -319,6 +331,7 @@ export function AdminEventsDashboard() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 

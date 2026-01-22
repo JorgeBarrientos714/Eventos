@@ -8,4 +8,7 @@ export interface Event {
   category: string;
   image: string;
   isIntermediate: boolean;
+  cuposDisponibles?: number;
+  cuposTotales?: number;
+  cantidadInvPermitidos?: number;
 }

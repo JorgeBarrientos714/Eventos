@@ -39,7 +39,9 @@ export default function TeacherDetailsCard({ teacher, onDataChange }: TeacherDet
   };
 
   const ethnicDesc = ETHNIC_GROUPS[editingTeacher.ethnicGroup as keyof typeof ETHNIC_GROUPS];
-  const selectedDisabilities = DISABILITY_TYPES.filter(d => editingTeacher.disabilityTypes?.includes(d.value));
+  const selectedDisabilities = DISABILITY_TYPES.filter(d => 
+    (editingTeacher.disabilityTypes || []).includes(d.value as any)
+  );
 
   return (
     <div className="bg-white rounded-2xl p-6 md:p-8 shadow-md space-y-6">
@@ -243,7 +245,7 @@ export default function TeacherDetailsCard({ teacher, onDataChange }: TeacherDet
                   checked={!editingTeacher.hasDisability}
                   onChange={() => {
                     handleChange('hasDisability', false);
-                    handleChange('disabilityType', undefined);
+                    handleChange('disabilityTypes', undefined);
                   }}
                   className="cursor-pointer"
                 />
@@ -275,7 +277,7 @@ export default function TeacherDetailsCard({ teacher, onDataChange }: TeacherDet
                   <label key={dt.value} className="flex items-start gap-3 cursor-pointer p-3 border rounded-lg hover:bg-gray-50">
                     <input
                       type="checkbox"
-                      checked={editingTeacher.disabilityTypes?.includes(dt.value) || false}
+                      checked={(editingTeacher.disabilityTypes || []).includes(dt.value as any) || false}
                       onChange={(e) => handleDisabilityTypeChange(dt.value, e.target.checked)}
                       className="mt-1 cursor-pointer accent-teal-700"
                     />

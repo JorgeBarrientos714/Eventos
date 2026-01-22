@@ -1,3 +1,8 @@
+// Módulo: login
+// Función: Contexto de autenticación admin (login, registro, recuperación)
+// Relacionados: lib/admin/services.ts, pages/admin/login.tsx
+// Rutas/Endpoints usados: delega en lib/admin/services.ts
+// Notas: No se renombra para mantener las importaciones existentes en el árbol de componentes.
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { adminServices } from '../lib/admin/services';
 import {

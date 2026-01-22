@@ -1,3 +1,8 @@
+// Módulo: carnetizacion
+// Función: Navegador visual de pasos para el flujo de carnetización
+// Relacionados: pages/carnetizacion.tsx, components/carnetizacion/*
+// Rutas/Endpoints usados: ninguno
+// Notas: No se renombra para conservar imports actuales.
 export type Step = {
   label: string;
   description?: string;

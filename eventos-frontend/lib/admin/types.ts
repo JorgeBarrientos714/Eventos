@@ -1,3 +1,8 @@
+// Módulo: frontend-admin
+// Función: Tipos compartidos para autenticación y gestión de eventos admin
+// Relacionados: lib/admin/services.ts, components/admin/*, context/AdminAuthContext.tsx
+// Rutas/Endpoints usados: se consumen vía services.ts
+// Notas: No se renombra para mantener compatibilidad de imports.
 export type AdminEventState = 'activo' | 'pospuesto' | 'cancelado';
 
 export interface AdminArea {
@@ -10,6 +15,7 @@ export interface AdminEvent {
   id: string;
   nombre: string;
   descripcion: string;
+  tipoEvento?: 'clase' | 'evento';
   regional: string;
   areaId: string;
   areaNombre: string;
@@ -26,6 +32,12 @@ export interface AdminEvent {
   cuposTotales: number;
   imagen?: string;
   estado: AdminEventState;
+  idRegional?: string;
+  // IDs para precarga al editar
+  claseId?: string;
+  departamentoId?: string;
+  municipioId?: string;
+  aldeaId?: string;
 }
 
 export type AdminDocenteGenero = 'Masculino' | 'Femenino' | 'Otro';

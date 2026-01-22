@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Header } from '../components/Header';
 import { CancellationHistory } from '../components/CancellationHistoryPage';
-import { MOCK_EVENTS } from '../lib/events';
-import { getCancelledRegistrations } from '../lib/registrations';
+import { getAllEvents } from '../lib/events';
+import { registroServices } from '../lib/registro/services';
+import { docenteAuth } from '../lib/authDocente';
 import type { Registration } from '../types/teacher';
+import type { Event } from '../types/event';
 
 export default function CancellationHistoryPage() {
   const router = useRouter();
@@ -13,9 +15,30 @@ export default function CancellationHistoryPage() {
     return typeof q === 'string' ? q : '';
   });
   const [cancelledRegistrations, setCancelledRegistrations] = useState<Registration[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setCancelledRegistrations(getCancelledRegistrations());
+    async function loadData() {
+      try {
+        const eventsData = await getAllEvents();
+        setEvents(eventsData);
+        const me = await docenteAuth.me();
+        const canceladas = await registroServices.listarMisCancelaciones();
+        const mapped: Registration[] = (canceladas || []).map((r: any) => ({
+          id: String(r.idRegistro),
+          eventId: String(r.evento?.id ?? ''),
+          teacherDni: me?.nIdentificacion || '',
+          registeredAt: r.fechaRegistro || new Date().toISOString(),
+        }));
+        setCancelledRegistrations(mapped);
+      } catch (error) {
+        console.error('Error al cargar datos:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
   }, []);
 
   const handleNavigate = (page: string) => {
@@ -36,10 +59,24 @@ export default function CancellationHistoryPage() {
     router.replace(url, undefined, { shallow: true });
   };
 
+  if (loading) {
+    return (
+      <main className="min-h-screen">
+        <Header currentPage="cancellation-history" onNavigate={handleNavigate} onSearch={onSearch} searchQuery={searchQuery} />
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-[#0d7d6e] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando historial...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen">
       <Header currentPage="cancellation-history" onNavigate={handleNavigate} onSearch={onSearch} searchQuery={searchQuery} />
-      <CancellationHistory events={MOCK_EVENTS} cancelledRegistrations={cancelledRegistrations} searchQuery={searchQuery} />
+      <CancellationHistory events={events} cancelledRegistrations={cancelledRegistrations} searchQuery={searchQuery} />
     </main>
   );
 }

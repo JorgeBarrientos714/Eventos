@@ -1,3 +1,8 @@
+// Módulo: frontend-admin
+// Función: Layout base para vistas admin (navegación, shell y logout)
+// Relacionados: AdminGuard, AdminEventsDashboard, pages/admin/*
+// Rutas/Endpoints usados: ninguno directo (usa logout del contexto)
+// Notas: No se renombra para conservar imports actuales.
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import backgroundImage from '../../assets/Edificio Color Blanco.jpg';
@@ -29,12 +34,12 @@ export function AdminLayout({ title, description, children }: AdminLayoutProps) 
       />
       <div className="events-content">
         <header className="border-b border-gray-100 bg-white/80 backdrop-blur-sm">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4">
             <div className="flex flex-col">
               <span className="text-xs uppercase tracking-wide text-[#0d7d6e]">Panel administrativo</span>
               <h1 className="text-lg font-semibold text-gray-800">INPREMA</h1>
             </div>
-            <nav className="flex items-center gap-4 text-sm font-medium text-gray-600">
+            <nav className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm font-medium text-gray-600">
               <Link href="/admin/eventos" className={router.pathname.startsWith('/admin/eventos') ? 'text-[#0d7d6e]' : 'hover:text-[#0d7d6e]'}>
                 Gestión de eventos
               </Link>

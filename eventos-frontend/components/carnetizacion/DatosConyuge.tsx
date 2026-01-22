@@ -1,3 +1,8 @@
+// Módulo: carnetizacion
+// Función: Captura de datos del cónyuge en el flujo de carnetización
+// Relacionados: pages/carnetizacion.tsx, CarnetSteps
+// Rutas/Endpoints usados: ninguno (manejo local)
+// Notas: No se renombra para mantener imports existentes.
 import DatePicker from "../DatePicker";
 
 type DatosConyugeValue = {

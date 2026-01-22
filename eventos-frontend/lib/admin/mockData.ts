@@ -1,3 +1,8 @@
+// Módulo: frontend-admin
+// Función: Datos mock para eventos, docentes y áreas en admin
+// Relacionados: lib/admin/services.ts, components/admin/*
+// Rutas/Endpoints usados: ninguno (solo datos locales)
+// Notas: No se renombra para preservar imports.
 import { AdminArea, AdminDocente, AdminEvent, AdminRegistro } from './types';
 
 export const ADMIN_AREAS: AdminArea[] = [

@@ -1,3 +1,8 @@
+// Módulo: carnetizacion
+// Función: Paso de referencias familiar y personal
+// Relacionados: pages/carnetizacion.tsx, CarnetSteps
+// Rutas/Endpoints usados: ninguno (manejo local)
+// Notas: No se renombra para conservar imports.
 type ReferenciasValue = {
   familiar: {
     nombre: string;

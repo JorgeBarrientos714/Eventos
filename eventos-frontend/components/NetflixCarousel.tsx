@@ -1,3 +1,8 @@
+// Módulo: global/public
+// Función: Carrusel tipo Netflix para listar eventos
+// Relacionados: Home.tsx, EventCard.tsx
+// Rutas/Endpoints usados: ninguno (datos por props)
+// Notas: No se renombra para conservar imports.
 import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 

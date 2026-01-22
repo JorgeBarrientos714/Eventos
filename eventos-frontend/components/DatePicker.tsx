@@ -24,7 +24,12 @@ export default function DatePicker({ label, value, onChange }: DatePickerProps) 
   const today = new Date();
   const parsed = value ? parseDDMMYYYY(value) : null;
 
-  const [open, setOpen] = useState(false);
+  // Módulo: global/shared
+  // Función: Selector de fecha reutilizable para formularios del portal
+  // Relacionados: components/carnetizacion/BuscarAfiliado.tsx, DatosConyuge.tsx
+  // Rutas/Endpoints usados: ninguno
+  // Notas: No se renombra para conservar imports.
+    const [open, setOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(parsed ? parsed.getMonth() : today.getMonth());
   const [currentYear, setCurrentYear] = useState(parsed ? parsed.getFullYear() : today.getFullYear());
 

@@ -1,3 +1,8 @@
+// Módulo: carnetizacion
+// Función: Paso de búsqueda de afiliado por DNI y fecha de nacimiento
+// Relacionados: CarnetSteps, DatosGenerales
+// Rutas/Endpoints usados: ninguno (simulación local)
+// Notas: No se renombra para mantener imports actuales.
 import { useState } from "react";
 import DatePicker from "../DatePicker";
 

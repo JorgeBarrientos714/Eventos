@@ -1,6 +1,11 @@
 import { X, Calendar, Clock, MapPin } from 'lucide-react';
 import type { Event } from '../types/event';
 
+// Módulo: global/public
+// Función: Modal de detalle de evento con acciones de registro
+// Relacionados: EventCard.tsx, Home.tsx, pages/events.tsx
+// Rutas/Endpoints usados: ninguno (acciones provistas por props)
+// Notas: No se renombra para conservar imports.
 interface EventModalProps {
   event: Event;
   isRegistered: boolean;

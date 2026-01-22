@@ -1,3 +1,8 @@
+// Módulo: frontend-admin
+// Función: Guardia de rutas admin; redirige si no hay sesión
+// Relacionados: AdminAuthContext, pages/admin/*
+// Rutas/Endpoints usados: ninguno directo (usa contexto)
+// Notas: No se renombra para mantener integración con Next.js pages.
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useAdminAuth } from '../../context/AdminAuthContext';

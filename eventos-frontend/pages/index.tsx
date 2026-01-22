@@ -2,7 +2,6 @@ import { useRouter } from 'next/router';
 import { useMemo, useState } from 'react';
 import { Header } from '../components/Header';
 import { Home as HomePage } from '../components/Home';
-import { MOCK_EVENTS } from '../lib/events';
 
 export default function Home() {
   const router = useRouter();
@@ -32,7 +31,7 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       <Header currentPage="home" onNavigate={handleNavigate} onSearch={onSearch} searchQuery={searchQuery} />
-      <HomePage onNavigate={handleNavigate} searchQuery={searchQuery} events={MOCK_EVENTS} />
+      <HomePage onNavigate={handleNavigate} searchQuery={searchQuery} />
     </main>
   );
 }

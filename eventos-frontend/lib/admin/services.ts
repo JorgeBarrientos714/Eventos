@@ -1,7 +1,13 @@
+// Módulo: frontend-admin (login/admin)
+// Función: Cliente HTTP para autenticación admin y gestión de eventos/áreas
+// Relacionados: context/AdminAuthContext.tsx, pages/admin/login.tsx, lib/admin/types.ts
+// Rutas/Endpoints usados: /eventos/auth/login, /eventos/auth/register, /eventos/auth/recuperar, /eventos/auth/restablecer, /eventos/areas, /eventos/evento/area/:id
+// Notas: No se renombra para preservar imports existentes en todo el frontend.
 import { ADMIN_DEPARTAMENTOS, ADMIN_DOCENTES, ADMIN_EVENTOS, ADMIN_GRUPOS_ETNICOS, ADMIN_REGISTROS } from './mockData';
 import {
   AdminDocente,
   AdminEvent,
+  AdminRegistro,
   AdminLoginPayload,
   AdminRecoveryPayload,
   AdminRegisterPayload,
@@ -13,7 +19,9 @@ import {
 } from './types';
 
 const STORAGE_KEY = 'portal-inprema-admin-session';
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+const API_BASE_URL = typeof window !== 'undefined' 
+  ? process.env.NEXT_PUBLIC_API_URL ?? `http://${window.location.hostname}:3000`
+  : process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
 
 const toISODate = (value?: string | Date | null): string => {
   if (!value) return '';
@@ -34,6 +42,8 @@ const mapEvento = (evento: any): AdminEvent => {
   const area = evento?.clase?.area;
   const municipio = evento?.municipio;
   const departamento = municipio?.departamento;
+  const tipoRaw = (evento?.tipoEvento ?? evento?.TIPO_EVENTO ?? '').toString().toLowerCase();
+  const tipoEvento = tipoRaw === 'clase' || tipoRaw === 'evento' ? (tipoRaw as 'clase' | 'evento') : undefined;
   return {
     id: String(evento?.id ?? evento?.ID_EVENTO ?? Date.now()),
     nombre: evento?.nombreEvento ?? evento?.NOMBRE_EVENTO ?? 'Evento',
@@ -41,7 +51,8 @@ const mapEvento = (evento: any): AdminEvent => {
     regional: evento?.regional?.nombres ?? evento?.REGIONAL ?? 'N/D',
     areaId: area ? String(area.id ?? area.ID_AREA) : '',
     areaNombre: area?.nombres ?? area?.NOMBRE_AREA ?? 'Sin área',
-    terapiaOClase: 'clase',
+    tipoEvento,
+    terapiaOClase: tipoEvento === 'evento' ? 'terapia' : 'clase',
     diasSemana: splitDiasSemana(evento?.diasSemana ?? evento?.DIAS_SEMANA),
     departamento: departamento?.nombres ?? departamento?.NOMBRES ?? '',
     municipio: municipio?.nombres ?? municipio?.NOMBRES_MUNICIPIO ?? '',
@@ -54,6 +65,11 @@ const mapEvento = (evento: any): AdminEvent => {
     cuposTotales: Number(evento?.cuposTotales ?? evento?.CUPOS_TOTALES ?? 0),
     imagen: evento?.imagenUrl ?? undefined,
     estado: 'activo',
+    claseId: evento?.idClase ? String(evento.idClase) : (evento?.ID_CLASE ? String(evento.ID_CLASE) : undefined),
+    departamentoId: departamento?.id ? String(departamento.id) : (departamento?.ID_DEPARTAMENTO ? String(departamento.ID_DEPARTAMENTO) : undefined),
+    municipioId: municipio?.id ? String(municipio.id) : (municipio?.ID_MUNICIPIO ? String(municipio.ID_MUNICIPIO) : undefined),
+    idRegional: evento?.idRegional ? String(evento.idRegional) : (evento?.ID_REGIONAL ? String(evento.ID_REGIONAL) : undefined),
+    ...(evento?.cantidadInvPermitidos && { cantidadInvitados: Number(evento.cantidadInvPermitidos) }),
   };
 };
 
@@ -191,6 +207,22 @@ export const adminServices = {
     }));
   },
 
+  async listRegionales(): Promise<Array<{ id: string; nombre: string }>> {
+    const data = await fetchJSON<any[]>(`${API_BASE_URL}/eventos/regionales`, { method: 'GET' });
+    return data.map((r) => ({ id: String(r.id ?? r.ID_REGIONAL), nombre: r.nombres ?? r.NOMBRE_REGIONAL ?? 'Regional' }));
+  },
+
+  async listEstadosEvento(): Promise<Array<{ id: string; nombre: string; descripcion?: string }>> {
+    const data = await fetchJSON<any[]>(`${API_BASE_URL}/eventos/estados/EVENTO`, { method: 'GET' });
+    return data.map((e) => ({ id: String(e.id ?? e.ID_ESTADO), nombre: e.nombreEstado ?? e.NOMBRE_ESTADO ?? 'Estado', descripcion: e.descripcion ?? e.DESCRIPCION ?? undefined }));
+  },
+
+  // Clases por área (para seleccionar el nombre del evento)
+  async listClasesByArea(areaId: string | number): Promise<any[]> {
+    const id = typeof areaId === 'string' ? Number(areaId) : areaId;
+    return fetchJSON<any[]>(`${API_BASE_URL}/eventos/clases/area/${id}`, { method: 'GET' });
+  },
+
   async listEventos(): Promise<AdminEvent[]> {
     const session = readStoredSession();
     const areaId = session?.usuario.empleado?.idArea;
@@ -214,6 +246,133 @@ export const adminServices = {
     return ADMIN_EVENTOS.map((evento) => ({ ...evento }));
   },
 
+  async createEvento(values: any): Promise<AdminEvent> {
+    const session = readStoredSession();
+    const idUsuario = session?.usuario?.id ?? undefined;
+    const diasSemanaStr = Array.isArray(values?.diasSemana) ? values.diasSemana.join(',') : values?.diasSemana ?? '';
+    const direccionFinal = [values?.aldeaNombre, values?.direccion].filter(Boolean).join(', ');
+    
+    // Subir imagen si existe archivo
+    let imagenUrl = values?.imagen ?? undefined;
+    if (values?.imagenFile) {
+      try {
+        const formData = new FormData();
+        formData.append('imagen', values.imagenFile);
+        
+        const uploadResponse = await fetch(`${API_BASE_URL}/eventos/upload/imagen`, {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (uploadResponse.ok) {
+          const uploadData = await uploadResponse.json();
+          // Guardar solo la ruta relativa (sin API_BASE_URL)
+          imagenUrl = uploadData.url;
+        }
+      } catch (error) {
+        console.error('Error al subir imagen:', error);
+      }
+    }
+    
+    const payload = {
+      nombreEvento: values?.nombre ?? '',
+      descripcion: values?.descripcion ?? '',
+      tipoEvento: values?.tipoEvento ?? (values?.terapiaOClase === 'clase' ? 'CLASE' : 'EVENTO'),
+      idClase: values?.claseId ? Number(values.claseId) : undefined,
+      diasSemana: diasSemanaStr,
+      idMunicipio: values?.municipioId ? Number(values.municipioId) : undefined,
+      direccion: direccionFinal,
+      fechaInicio: values?.fechaInicio ?? '',
+      fechaFin: values?.fechaFin ?? '',
+      horaInicio: values?.horaInicio ?? '',
+      horaFin: values?.horaFin ?? '',
+      cuposDisponibles: values?.cuposDisponibles ?? values?.cuposTotales ?? 0,
+      cuposTotales: values?.cuposTotales ?? 0,
+      imagenUrl,
+      idUsuario,
+      idRegional: values?.idRegional ? Number(values.idRegional) : undefined,
+      cantidadInvPermitidos: values?.cantidadInvitados ? Number(values.cantidadInvitados) : undefined,
+    };
+
+    const data = await fetchJSON<any>(`${API_BASE_URL}/eventos/evento`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return mapEvento(data);
+  },
+
+  async updateEvento(id: string, values: any): Promise<AdminEvent> {
+    const session = readStoredSession();
+    const idUsuario = session?.usuario?.id ?? undefined;
+    const diasSemanaStr = Array.isArray(values?.diasSemana) ? values.diasSemana.join(',') : values?.diasSemana ?? '';
+    const direccionFinal = [values?.aldeaNombre, values?.direccion].filter(Boolean).join(', ');
+    
+    // Subir imagen si existe archivo nuevo
+    let imagenUrl = values?.imagen ?? undefined;
+    if (values?.imagenFile) {
+      try {
+        const formData = new FormData();
+        formData.append('imagen', values.imagenFile);
+        
+        const uploadResponse = await fetch(`${API_BASE_URL}/eventos/upload/imagen`, {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (uploadResponse.ok) {
+          const uploadData = await uploadResponse.json();
+          // Guardar solo la ruta relativa (sin API_BASE_URL)
+          imagenUrl = uploadData.url;
+        }
+      } catch (error) {
+        console.error('Error al subir imagen:', error);
+      }
+    }
+    
+    const payload: any = {
+      nombreEvento: values?.nombre ?? '',
+      descripcion: values?.descripcion ?? '',
+      tipoEvento: values?.tipoEvento ?? (values?.terapiaOClase === 'clase' ? 'CLASE' : 'EVENTO'),
+      diasSemana: diasSemanaStr,
+      direccion: direccionFinal,
+      fechaInicio: values?.fechaInicio ?? '',
+      fechaFin: values?.fechaFin ?? '',
+      horaInicio: values?.horaInicio ?? '',
+      horaFin: values?.horaFin ?? '',
+      cuposDisponibles: values?.cuposDisponibles ?? 0,
+      cuposTotales: values?.cuposTotales ?? 0,
+      idUsuario,
+    };
+
+    // Agregar imagen solo si se proporciona en base64 (nueva imagen)
+    if (imagenUrl && imagenUrl.startsWith('data:')) {
+      payload.imagenBase64 = imagenUrl;
+    }
+
+    // Agregar campos opcionales solo si existen y tienen valores válidos
+    if (values?.idMunicipio && Number(values.idMunicipio) > 0) {
+      payload.idMunicipio = Number(values.idMunicipio);
+    } else if (values?.municipioId && Number(values.municipioId) > 0) {
+      payload.idMunicipio = Number(values.municipioId);
+    }
+    
+    if (values?.claseId) {
+      payload.idClase = Number(values.claseId);
+    }
+    if (values?.idRegional) {
+      payload.idRegional = Number(values.idRegional);
+    }
+    if (values?.cantidadInvitados) {
+      payload.cantidadInvPermitidos = Number(values.cantidadInvitados);
+    }
+
+    const data = await fetchJSON<any>(`${API_BASE_URL}/eventos/evento/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    return mapEvento(data);
+  },
+
   async listDocentes(): Promise<AdminDocente[]> {
     return ADMIN_DOCENTES.map((docente) => ({ ...docente }));
   },
@@ -222,8 +381,21 @@ export const adminServices = {
     return ADMIN_REGISTROS.map((registro) => ({ ...registro }));
   },
 
+  // Departamentos (mock actual) → preferir full desde BD
   async listDepartamentos(): Promise<string[]> {
     return [...ADMIN_DEPARTAMENTOS];
+  },
+
+  async listDepartamentosFull(): Promise<any[]> {
+    return fetchJSON<any[]>(`${API_BASE_URL}/eventos/departamentos`, { method: 'GET' });
+  },
+
+  async listMunicipiosByDepartamento(departamentoId: string): Promise<any[]> {
+    return fetchJSON<any[]>(`${API_BASE_URL}/eventos/municipios/departamento/${departamentoId}`, { method: 'GET' });
+  },
+
+  async listAldeasByMunicipio(municipioId: string): Promise<any[]> {
+    return fetchJSON<any[]>(`${API_BASE_URL}/eventos/aldeas/municipio/${municipioId}`, { method: 'GET' });
   },
 
   async listGruposEtnicos(): Promise<string[]> {

@@ -1,3 +1,8 @@
+// Módulo: carnetizacion
+// Función: Gestor de beneficiarios dentro del flujo de carnetización
+// Relacionados: CarnetSteps, DatosGenerales, Referencias
+// Rutas/Endpoints usados: ninguno (operación local)
+// Notas: No se renombra para mantener imports existentes.
 import React from "react";
 
 type Benef = {

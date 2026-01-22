@@ -1,3 +1,8 @@
+// Módulo: carnetizacion
+// Función: Captura de fotografía vía cámara para el carnet
+// Relacionados: pages/carnetizacion.tsx, CarnetSteps
+// Rutas/Endpoints usados: ninguno (operación en cliente)
+// Notas: No se renombra para conservar imports.
 import { useEffect, useRef, useState } from "react";
 
 type Props = {

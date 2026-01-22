@@ -1,3 +1,8 @@
+// Módulo: global/shared
+// Función: Utilidades de registro/cancelación de eventos en localStorage
+// Relacionados: components/MyRegistrationsPage.tsx, pages/my-registrations.tsx
+// Rutas/Endpoints usados: ninguno (persistencia local)
+// Notas: No se renombra para conservar imports.
 import type { Registration } from '../types/teacher';
 
 const KEY = 'eventos_registrations';

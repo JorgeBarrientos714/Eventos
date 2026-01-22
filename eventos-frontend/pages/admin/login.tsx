@@ -1,3 +1,8 @@
+// Módulo: login
+// Función: Vista de autenticación admin (login/registro/recuperación)
+// Relacionados: context/AdminAuthContext.tsx, lib/admin/services.ts
+// Rutas/Endpoints usados: delega en lib/admin/services.ts (auth/register/login/recuperar/restablecer)
+// Notas: No se renombra para preservar rutas Next.js y compatibilidad.
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { ArrowLeft, Lock, Mail, PlusCircle, RefreshCcw } from 'lucide-react';
@@ -83,7 +88,6 @@ export default function AdminLoginPage() {
     setSubmitting(true);
     try {
       await login({ correoElectronico, contrasena });
-      router.replace('/admin/eventos');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo iniciar sesión');
     } finally {
@@ -105,7 +109,6 @@ export default function AdminLoginPage() {
         contrasena,
       });
       setSuccess('Usuario creado y sesión iniciada correctamente.');
-      router.replace('/admin/eventos');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo registrar al usuario');
     } finally {

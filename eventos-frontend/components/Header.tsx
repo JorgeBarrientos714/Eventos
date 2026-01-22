@@ -1,6 +1,12 @@
+// Módulo: global/public
+// Función: Barra de navegación principal del portal público
+// Relacionados: components/Home.tsx, pages/index.tsx
+// Rutas/Endpoints usados: ninguno
+// Notas: No se renombra para conservar imports.
 import Link from 'next/link';
-import { ChevronDown, Menu, Search, X } from 'lucide-react';
+import { ChevronDown, Menu, Search, X, User } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { docenteAuth } from '../lib/authDocente';
 
 interface HeaderProps {
   currentPage: string;
@@ -14,6 +20,7 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
   const [showModulesMenu, setShowModulesMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState(externalSearchQuery);
   const modulesRef = useRef<HTMLDivElement | null>(null);
+  const [docenteNombre, setDocenteNombre] = useState<string>('');
 
   // Sincronizar con el searchQuery externo (cuando se limpia desde App.tsx)
   useEffect(() => {
@@ -29,6 +36,16 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
     };
     document.addEventListener('click', handler);
     return () => document.removeEventListener('click', handler);
+  }, []);
+
+  // Cargar docente actual si hay token
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const me = await docenteAuth.me().catch(() => null);
+      if (mounted && me?.nombreCompleto) setDocenteNombre(me.nombreCompleto);
+    })();
+    return () => { mounted = false; };
   }, []);
 
   const handleNavClick = (page: string) => {
@@ -59,9 +76,9 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
   };
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
+    <header className="bg-white shadow-sm sticky top-0 z-50 overflow-x-clip">
       <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 md:gap-4 min-w-0">
           {/* Logo */}
           <button 
             onClick={() => handleNavClick('home')}
@@ -72,7 +89,7 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
           </button>
 
           {/* Search Bar - Desktop & Tablet */}
-          <form onSubmit={handleSearch} className="hidden sm:flex items-center flex-1 max-w-md mx-4">
+          <form onSubmit={handleSearch} className="hidden sm:flex items-center basis-full sm:basis-auto w-full sm:flex-1 sm:max-w-md mx-0 sm:mx-4 order-3 sm:order-none min-w-0">
             <div className="relative w-full">
               <input
                 type="text"
@@ -102,7 +119,7 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
           </form>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6 lg:gap-8">
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8 min-w-0">
             <button 
               onClick={() => handleNavClick('home')}
               className={`hover:text-[#0d7d6e] transition-colors ${
@@ -165,6 +182,27 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
                 </div>
               )}
             </div>
+            <div className="flex items-center gap-3 text-sm min-w-0">
+              <div className="flex items-center gap-2 text-gray-600 max-w-[240px] min-w-0">
+                <User className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate" title={docenteNombre || 'No identificado'}>
+                  {docenteNombre ? docenteNombre : 'No identificado'}
+                </span>
+              </div>
+              {docenteNombre && (
+                <button
+                  onClick={() => {
+                    docenteAuth.clearToken();
+                    setDocenteNombre('');
+                    window.location.reload();
+                  }}
+                  className="rounded-full border border-red-600 px-3 py-1.5 text-red-600 font-semibold transition hover:bg-red-600 hover:text-white"
+                  title="Cerrar sesión del docente"
+                >
+                  Cerrar sesión
+                </button>
+              )}
+            </div>
             <Link
               href="/admin/login"
               className="rounded-full border border-[#0d7d6e] px-4 py-1.5 text-sm font-semibold text-[#0d7d6e] transition hover:bg-[#0d7d6e] hover:text-white"
@@ -214,6 +252,27 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
                 </button>
               </div>
             </form>
+            <div className="sm:hidden flex items-center gap-2 text-sm py-2">
+              <div className="flex items-center gap-2 text-gray-600 flex-1">
+                <User className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate" title={docenteNombre || 'No identificado'}>
+                  {docenteNombre ? docenteNombre : 'No identificado'}
+                </span>
+              </div>
+              {docenteNombre && (
+                <button
+                  onClick={() => {
+                    docenteAuth.clearToken();
+                    setDocenteNombre('');
+                    window.location.reload();
+                  }}
+                  className="rounded-full border border-red-600 px-3 py-1.5 text-red-600 font-semibold transition hover:bg-red-600 hover:text-white text-xs"
+                  title="Cerrar sesión del docente"
+                >
+                  Cerrar
+                </button>
+              )}
+            </div>
             
             <button 
               onClick={() => handleNavClick('home')}

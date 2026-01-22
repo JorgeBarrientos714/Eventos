@@ -1,3 +1,8 @@
+// Módulo: carnetizacion
+// Función: Paso de captura de datos generales del afiliado
+// Relacionados: pages/carnetizacion.tsx, CarnetSteps, BuscarAfiliado
+// Rutas/Endpoints usados: ninguno (manejo local)
+// Notas: No se renombra para conservar imports.
 type DatosGeneralesValue = {
   nombreCompleto: string;
   dni: string;

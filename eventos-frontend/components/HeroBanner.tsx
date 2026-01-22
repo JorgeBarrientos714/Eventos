@@ -1,3 +1,8 @@
+// Módulo: global/public
+// Función: Carrusel hero para destacar eventos en la página pública
+// Relacionados: components/Home.tsx, pages/index.tsx
+// Rutas/Endpoints usados: ninguno (datos provistos por props)
+// Notas: No se renombra para conservar imports.
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Event } from '../types/event';
@@ -10,25 +15,38 @@ export function HeroBanner({ events }: HeroBannerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
+    if (!events || events.length === 0) return;
+    
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % events.length);
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [events.length]);
+  }, [events.length, events]);
 
   const goToPrevious = () => {
+    if (!events || events.length === 0) return;
     setCurrentIndex((prev) => (prev - 1 + events.length) % events.length);
   };
 
   const goToNext = () => {
+    if (!events || events.length === 0) return;
     setCurrentIndex((prev) => (prev + 1) % events.length);
   };
+
+  // Validación: mostrar placeholder si no hay eventos
+  if (!events || events.length === 0) {
+    return (
+      <div className="relative w-full h-[200px] md:h-[300px] rounded-xl md:rounded-2xl overflow-hidden bg-gray-200 flex items-center justify-center">
+        <p className="text-gray-500">No hay eventos disponibles</p>
+      </div>
+    );
+  }
 
   const currentEvent = events[currentIndex];
 
   return (
-    <div className="relative w-full h-[200px] md:h-[300px] rounded-xl md:rounded-2xl overflow-hidden bg-gray-2 00 group">
+    <div className="relative w-full h-[200px] md:h-[300px] rounded-xl md:rounded-2xl overflow-hidden bg-gray-200 group">
       {/* Image */}
       <img
         src={currentEvent.image}

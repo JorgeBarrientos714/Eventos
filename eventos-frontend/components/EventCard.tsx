@@ -1,15 +1,21 @@
+// Módulo: global/public
+// Función: Tarjeta de evento para listados públicos
+// Relacionados: Home.tsx, NetflixCarousel.tsx, pages/events.tsx
+// Rutas/Endpoints usados: ninguno (datos por props)
+// Notas: No se renombra para conservar imports.
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import type { Event } from '../types/event';
 
 interface EventCardProps {
   event: Event;
   isRegistered: boolean;
+  estado?: string;
   onMoreInfo: () => void;
   onRegister: () => void;
   onCancel: () => void;
 }
 
-export function EventCard({ event, isRegistered, onMoreInfo, onRegister, onCancel }: EventCardProps) {
+export function EventCard({ event, isRegistered, estado, onMoreInfo, onRegister, onCancel }: EventCardProps) {
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 ease-out hover:scale-105 h-full flex flex-col cursor-pointer">
       {/* Image */}
@@ -19,9 +25,17 @@ export function EventCard({ event, isRegistered, onMoreInfo, onRegister, onCance
           alt={event.title}
           className="w-full h-full object-cover"
         />
-        {isRegistered && (
-          <div className="absolute top-2 right-2 bg-green-600 text-white px-3 py-1 rounded-full text-xs" style={{ fontWeight: 600 }}>
-            Inscrito
+        {estado && (
+          <div
+            className={`absolute top-2 right-2 px-3 py-1 rounded-full text-xs text-white font-semibold ${
+              estado === 'Inscrito'
+                ? 'bg-green-600'
+                : estado === 'Cancelado'
+                ? 'bg-red-600'
+                : 'bg-gray-600'
+            }`}
+          >
+            {estado}
           </div>
         )}
       </div>

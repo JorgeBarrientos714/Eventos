@@ -1,3 +1,8 @@
+// Módulo: frontend-admin
+// Función: Modal para registro manual de docentes en eventos
+// Relacionados: AdminEventsDashboard, lib/admin/types.ts
+// Rutas/Endpoints usados: ninguno directo (opera en memoria/mock)
+// Notas: No se renombra para mantener compatibilidad.
 import { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { AdminDocente, AdminEvent } from '../../lib/admin/types';
@@ -82,15 +87,45 @@ export function RegisterModal({ evento, docentes, gruposEtnicos, onClose, onRegi
     }
 
     setIsSearching(true);
-    await new Promise((resolve) => setTimeout(resolve, 250));
-    const match = docentes.find((docente) => docente.dni === dni.trim());
-    setDocenteEncontrado(match ?? null);
-    setIsSearching(false);
+    setStatus(null);
 
-    if (!match) {
-      setStatus({ type: 'error', message: 'No se encontró información. Completa el formulario manualmente.' });
-    } else {
+    try {
+      // Buscar en la API (backend)
+      const response = await fetch(`/api/carnetizacion/docente/dni/${dni.trim()}`);
+      
+      if (!response.ok) {
+        setDocenteEncontrado(null);
+        setStatus({ type: 'error', message: 'No se encontró información. Completa el formulario manualmente.' });
+        setIsSearching(false);
+        return;
+      }
+
+      const docenteData = await response.json();
+      
+      // Mapear datos de la API al formato AdminDocente
+      const docenteEncontradoFormatted: AdminDocente = {
+        dni: docenteData.nIdentificacion || '',
+        nombre: [docenteData.primerNombre, docenteData.segundoNombre, docenteData.primerApellido, docenteData.segundoApellido]
+          .filter(Boolean)
+          .join(' ')
+          .toUpperCase(),
+        telefono: docenteData.telefono1 || '',
+        genero: docenteData.genero === 'M' ? 'Masculino' : docenteData.genero === 'F' ? 'Femenino' : 'Otro',
+        fechaNacimiento: docenteData.fechaNacimiento ? new Date(docenteData.fechaNacimiento).toISOString() : '',
+        discapacidad: 'no',
+        detalleDiscapacidad: undefined,
+        municipio: docenteData.municipio?.nombre || '',
+        grupoEtnico: docenteData.grupoEtnico?.nombreGrupoEtnico || '',
+      };
+
+      setDocenteEncontrado(docenteEncontradoFormatted);
       setStatus(null);
+    } catch (error) {
+      console.error('Error buscando docente:', error);
+      setDocenteEncontrado(null);
+      setStatus({ type: 'error', message: 'Error al buscar. Intenta nuevamente.' });
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -156,6 +191,8 @@ export function RegisterModal({ evento, docentes, gruposEtnicos, onClose, onRegi
             <label className="text-sm font-semibold text-gray-600">Número de identidad</label>
             <div className="mt-2 flex flex-col gap-3 sm:flex-row">
               <input
+                id="dni-input"
+                name="dni"
                 type="text"
                 value={dni}
                 onChange={(e) => {
@@ -182,6 +219,8 @@ export function RegisterModal({ evento, docentes, gruposEtnicos, onClose, onRegi
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-gray-600">Nombre completo</label>
                   <input
+                    id="nombre-input"
+                    name="nombre"
                     type="text"
                     value={formData.nombre}
                     onChange={(e) => setFormData((prev) => ({ ...prev, nombre: e.target.value.toUpperCase() }))}
@@ -192,6 +231,8 @@ export function RegisterModal({ evento, docentes, gruposEtnicos, onClose, onRegi
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-gray-600">Teléfono</label>
                   <input
+                    id="telefono-input"
+                    name="tel"
                     type="tel"
                     value={formData.telefono}
                     onChange={(e) => setFormData((prev) => ({ ...prev, telefono: e.target.value.replace(/[^0-9+]/g, '') }))}
@@ -205,6 +246,8 @@ export function RegisterModal({ evento, docentes, gruposEtnicos, onClose, onRegi
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-gray-600">Género</label>
                   <select
+                    id="genero-select"
+                    name="genero"
                     value={formData.genero}
                     onChange={(e) => setFormData((prev) => ({ ...prev, genero: e.target.value as AdminDocente['genero'] | '' }))}
                     className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#0d7d6e] focus:outline-none focus:ring-2 focus:ring-[#0d7d6e]/20"
@@ -218,6 +261,8 @@ export function RegisterModal({ evento, docentes, gruposEtnicos, onClose, onRegi
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-gray-600">Fecha de nacimiento</label>
                   <input
+                    id="fecha-nacimiento-input"
+                    name="bday"
                     type="date"
                     value={formData.fechaNacimiento}
                     max={new Date().toISOString().split('T')[0]}
@@ -231,6 +276,8 @@ export function RegisterModal({ evento, docentes, gruposEtnicos, onClose, onRegi
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-gray-600">¿Presenta discapacidad?</label>
                   <select
+                    id="discapacidad-select"
+                    name="discapacidad"
                     value={formData.discapacidad}
                     onChange={(e) => setFormData((prev) => ({ ...prev, discapacidad: e.target.value as 'si' | 'no' | '' }))}
                     className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#0d7d6e] focus:outline-none focus:ring-2 focus:ring-[#0d7d6e]/20"
@@ -244,6 +291,8 @@ export function RegisterModal({ evento, docentes, gruposEtnicos, onClose, onRegi
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-gray-600">Detalle de discapacidad</label>
                     <input
+                      id="detalle-discapacidad-input"
+                      name="detalleDiscapacidad"
                       type="text"
                       value={formData.detalleDiscapacidad}
                       onChange={(e) => setFormData((prev) => ({ ...prev, detalleDiscapacidad: e.target.value }))}
@@ -257,6 +306,8 @@ export function RegisterModal({ evento, docentes, gruposEtnicos, onClose, onRegi
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-gray-600">Municipio</label>
                   <input
+                    id="municipio-input"
+                    name="municipio"
                     type="text"
                     value={formData.municipio}
                     onChange={(e) => setFormData((prev) => ({ ...prev, municipio: e.target.value }))}
@@ -267,6 +318,8 @@ export function RegisterModal({ evento, docentes, gruposEtnicos, onClose, onRegi
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-gray-600">Grupo étnico</label>
                   <select
+                    id="grupo-etnico-select"
+                    name="grupoEtnico"
                     value={formData.grupoEtnico}
                     onChange={(e) => setFormData((prev) => ({ ...prev, grupoEtnico: e.target.value }))}
                     className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#0d7d6e] focus:outline-none focus:ring-2 focus:ring-[#0d7d6e]/20"

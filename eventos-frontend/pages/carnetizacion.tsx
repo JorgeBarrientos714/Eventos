@@ -1,3 +1,8 @@
+// Módulo: carnetizacion
+// Función: Página principal del flujo de carnetización (wizard de pasos)
+// Relacionados: components/carnetizacion/*
+// Rutas/Endpoints usados: ninguno directo (manejo en cliente)
+// Notas: No se renombra para mantener la ruta pública.
 import { useState } from "react";
 import { Header } from "../components/Header";
 import CarnetSteps, { Step } from "../components/carnetizacion/CarnetSteps";

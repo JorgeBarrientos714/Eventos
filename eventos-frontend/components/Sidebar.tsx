@@ -1,4 +1,6 @@
 import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { getAreas } from '../lib/events';
 
 interface SidebarProps {
   selectedCategory: string;
@@ -7,14 +9,23 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-const CATEGORIES = [
-  'Todas las áreas',
-  'Psicología',
-  'Terapia Ocupacional',
-  'Trabajo Social',
-];
-
 export function Sidebar({ selectedCategory, onSelectCategory, showMobile, onClose }: SidebarProps) {
+  const [categories, setCategories] = useState<string[]>(['Todas las áreas']);
+
+  useEffect(() => {
+    async function loadAreas() {
+      try {
+        const areas = await getAreas();
+        const areaNames = areas.map(a => a.nombre);
+        setCategories(['Todas las áreas', ...areaNames]);
+      } catch (error) {
+        console.error('Error al cargar áreas:', error);
+        // Fallback a categorías por defecto
+        setCategories(['Todas las áreas', 'Psicología', 'Terapia Ocupacional', 'Geriatría']);
+      }
+    }
+    loadAreas();
+  }, []);
   return (
     <>
       {/* Desktop Sidebar */}
@@ -22,7 +33,7 @@ export function Sidebar({ selectedCategory, onSelectCategory, showMobile, onClos
       <aside className="hidden md:block w-64 bg-white/40 backdrop-blur-md border-r border-white/30 fixed left-0 top-[73px] bottom-0 overflow-y-auto shadow-lg">
         <div className="p-6">
           <nav className="space-y-2">
-            {CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => onSelectCategory(category)}
@@ -59,7 +70,7 @@ export function Sidebar({ selectedCategory, onSelectCategory, showMobile, onClos
             </div>
             <div className="p-4">
               <nav className="space-y-2">
-                {CATEGORIES.map((category) => (
+                {categories.map((category) => (
                   <button
                     key={category}
                     onClick={() => onSelectCategory(category)}

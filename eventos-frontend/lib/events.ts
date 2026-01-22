@@ -1,116 +1,124 @@
+// Módulo: global/shared
+// Función: Servicios de eventos públicos - consume SOLO backend (BD)
+// Relacionados: pages/events.tsx, components/EventCard.tsx, Home.tsx
+// Rutas/Endpoints usados: GET /eventos/evento/todos, GET /eventos/areas
+// Notas: NO hay datos hardcodeados. Todo viene de la BD.
 import type { Event } from '../types/event';
 
-export const MOCK_EVENTS: Event[] = [
-  // TERAPIA OCUPACIONAL
-  {
-    id: '1',
-    title: 'Jornada Recreativa 1',
-    description: 'Primera jornada recreativa para el bienestar de los docentes.',
-    date: 'Miércoles 17 de diciembre del 2025',
-    time: '8:00 a.m. - 4:00 p.m.',
-    location: 'Hacienda el Trapiche',
-    category: 'Terapia Ocupacional',
-    image: 'https://images.unsplash.com/photo-1761456309232-a1416c392687?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+const API_BASE_URL = typeof window !== 'undefined' 
+  ? process.env.NEXT_PUBLIC_API_URL ?? `http://${window.location.hostname}:3000`
+  : process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+
+const formatDate = (dateStr?: string | Date): string => {
+  if (!dateStr) return '';
+  const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+  if (Number.isNaN(date.getTime())) return '';
+  
+  const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  
+  const diaSemana = dias[date.getDay()];
+  const dia = date.getDate();
+  const mes = meses[date.getMonth()];
+  const anio = date.getFullYear();
+  
+  return `${diaSemana} ${dia} de ${mes} del ${anio}`;
+};
+
+const mapEventoToEvent = (evento: any): Event => {
+  const area = evento?.clase?.area;
+  const municipio = evento?.municipio;
+  const departamento = municipio?.departamento;
+  
+  // Construir URL completa de imagen si existe
+  let imageUrl = 'https://images.unsplash.com/photo-1739285452629-2672b13fa42d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080';
+  if (evento?.imagenUrl) {
+    // Si la URL ya es completa (http/https), usarla directamente
+    if (evento.imagenUrl.startsWith('http')) {
+      imageUrl = evento.imagenUrl;
+    } else {
+      // Si es una ruta relativa, construir URL completa
+      imageUrl = `${API_BASE_URL}${evento.imagenUrl}`;
+    }
+  }
+  
+  return {
+    id: String(evento?.id ?? evento?.ID_EVENTO ?? Date.now()),
+    title: evento?.nombreEvento ?? evento?.NOMBRE_EVENTO ?? 'Evento',
+    description: evento?.descripcion ?? 'Sin descripción',
+    date: formatDate(evento?.fechaInicio),
+    time: `${evento?.horaInicio ?? '00:00'} - ${evento?.horaFin ?? '00:00'}`,
+    location: [
+      departamento?.nombres ?? '',
+      municipio?.nombres ?? municipio?.NOMBRES_MUNICIPIO ?? '',
+      evento?.direccion ?? ''
+    ].filter(Boolean).join(', ') || 'Sin ubicación',
+    category: area?.nombres ?? area?.NOMBRE_AREA ?? 'Sin área',
+    image: imageUrl,
     isIntermediate: false,
-  },
-  {
-    id: '2',
-    title: 'Jornada Recreativa 2',
-    description: 'Segunda jornada recreativa con actividades de integración.',
-    date: 'Jueves 18 de diciembre del 2025',
-    time: '8:00 a.m. - 4:00 p.m.',
-    location: 'Hotel Intercontinental',
-    category: 'Terapia Ocupacional',
-    image: 'https://images.unsplash.com/photo-1582500347014-3fbe150ed85a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    isIntermediate: false,
-  },
-  {
-    id: '3',
-    title: 'Jornada Recreativa 3',
-    description: 'Tercera jornada recreativa con dinámicas grupales.',
-    date: 'Viernes 19 de diciembre del 2025',
-    time: '8:00 a.m. - 4:00 p.m.',
-    location: 'Hacienda el Trapiche',
-    category: 'Terapia Ocupacional',
-    image: 'https://images.unsplash.com/photo-1732023998275-95390af360ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    isIntermediate: false,
-  },
-  {
-    id: '4',
-    title: 'Encuentro de Terapia Ocupacional',
-    description: 'Encuentro profesional de terapia ocupacional con especialistas.',
-    date: 'Lunes 22 de diciembre del 2025',
-    time: '9:00 a.m. - 5:00 p.m.',
-    location: 'Hotel Intercontinental',
-    category: 'Terapia Ocupacional',
-    image: 'https://images.unsplash.com/photo-1739285452629-2672b13fa42d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    isIntermediate: true,
-  },
-  {
-    id: '5',
-    title: 'Adulto Mayor',
-    description: 'Jornada especial dedicada al cuidado y bienestar del adulto mayor.',
-    date: 'Miércoles 17 de diciembre del 2025',
-    time: '8:00 a.m. - 4:00 p.m.',
-    location: 'Hacienda el Trapiche',
-    category: 'Terapia Ocupacional',
-    image: 'https://images.unsplash.com/photo-1761456309232-a1416c392687?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    isIntermediate: false,
-  },
-  {
-    id: '6',
-    title: 'Taller de Manualidades',
-    description: 'Taller práctico de manualidades y terapia ocupacional.',
-    date: 'Jueves 18 de diciembre del 2025',
-    time: '9:00 a.m. - 4:00 p.m.',
-    location: 'Hotel Intercontinental',
-    category: 'Terapia Ocupacional',
-    image: 'https://images.unsplash.com/photo-1611257309952-1389bc301a72?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    isIntermediate: false,
-  },
-  {
-    id: '7',
-    title: 'Jornada Navideña',
-    description: 'Celebración navideña con actividades recreativas.',
-    date: 'Miércoles 24 de diciembre del 2025',
-    time: '6:00 p.m. - 10:00 p.m.',
-    location: 'Hacienda el Trapiche',
-    category: 'Terapia Ocupacional',
-    image: 'https://images.unsplash.com/photo-1734027851931-6e06637151ed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    isIntermediate: false,
-  },
-  {
-    id: '8',
-    title: 'Expo Ventas',
-    description: 'Feria de emprendedores locales con productos artesanales.',
-    date: 'Viernes 19 de diciembre del 2025',
-    time: '9:00 a.m. - 4:00 p.m.',
-    location: 'Hacienda el Trapiche',
-    category: 'Terapia Ocupacional',
-    image: 'https://images.unsplash.com/photo-1719934113502-d2968bc999d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    isIntermediate: false,
-  },
-  {
-    id: '9',
-    title: 'Capacitación para Emprendedores',
-    description: 'Programa de formación para desarrollar habilidades empresariales.',
-    date: 'Lunes 22 de diciembre del 2025',
-    time: '8:00 a.m. - 12:00 p.m.',
-    location: 'Hotel Intercontinental',
-    category: 'Terapia Ocupacional',
-    image: 'https://images.unsplash.com/photo-1719934113502-d2968bc999d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    isIntermediate: true,
-  },
-  // PSICOLOGÍA (recortado)
-  {
-    id: '10',
-    title: 'Campamento por la Vida 1',
-    description: 'Primera edición del campamento enfocado en el bienestar emocional.',
-    date: 'Sábado 20 de diciembre del 2025',
-    time: '8:00 a.m. - 6:00 p.m.',
-    location: 'Parque Nacional',
-    category: 'Psicología',
-    image: 'https://images.unsplash.com/photo-1582500347014-3fbe150ed85a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    isIntermediate: false,
-  },
-];
+    cuposDisponibles: evento?.cuposDisponibles ?? 0,
+    cuposTotales: evento?.cuposTotales ?? 0,
+    cantidadInvPermitidos: evento?.cantidadInvPermitidos ?? 0,
+  };
+};
+
+/**
+ * Obtiene TODOS los eventos desde la BD
+ */
+export async function getAllEvents(): Promise<Event[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/eventos/evento/todos`);
+    if (!response.ok) {
+      console.error('Error al obtener eventos:', response.statusText);
+      return [];
+    }
+    const data = await response.json();
+    return Array.isArray(data) ? data.map(mapEventoToEvent) : [];
+  } catch (error) {
+    console.error('Error al obtener eventos:', error);
+    return [];
+  }
+}
+
+/**
+ * Obtiene eventos filtrados por área desde la BD
+ */
+export async function getEventsByArea(areaName: string): Promise<Event[]> {
+  if (areaName === 'Todas las áreas') {
+    return getAllEvents();
+  }
+  
+  try {
+    // Filtrar eventos en el cliente por nombre de área
+    const allEvents = await getAllEvents();
+    return allEvents.filter(e => e.category === areaName);
+  } catch (error) {
+    console.error('Error al filtrar eventos por área:', error);
+    return [];
+  }
+}
+
+/**
+ * Obtiene TODAS las áreas desde la BD
+ */
+export async function getAreas(): Promise<Array<{ id: string; nombre: string }>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/eventos/areas`);
+    if (!response.ok) {
+      console.error('Error al obtener áreas:', response.statusText);
+      return [];
+    }
+    const data = await response.json();
+    return Array.isArray(data) ? data.map((a: any) => ({
+      id: String(a.id ?? a.ID_AREA),
+      nombre: a.nombres ?? a.NOMBRE_AREA ?? 'Área'
+    })) : [];
+  } catch (error) {
+    console.error('Error al obtener áreas:', error);
+    return [];
+  }
+}
+
+// Datos de respaldo SOLO si la BD falla completamente
+// NO se usan por defecto - array vacío
+export const MOCK_EVENTS: Event[] = [];

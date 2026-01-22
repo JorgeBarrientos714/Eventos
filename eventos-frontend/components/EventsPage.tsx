@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Filter } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { EventCard } from './EventCard';
@@ -6,20 +6,44 @@ import { HeroBanner } from './HeroBanner';
 import { EventModal } from './EventModal';
 import type { Event } from '../types/event';
 import type { Registration } from '../types/teacher';
+import { getAllEvents } from '../lib/events';
 
 interface EventsProps {
-  events: Event[];
+  events?: Event[];
   registrations: Registration[];
+  estadosPorEvento?: Record<string, string>;
   onRegisterClick: (event: Event) => void;
   onMoreInfo: (event: Event) => void;
   searchQuery?: string;
   onSearch?: (query: string) => void;
 }
 
-export function Events({ events, registrations, onRegisterClick, onMoreInfo, searchQuery = '' }: EventsProps) {
+export function Events({ events: eventsProp, registrations, estadosPorEvento = {}, onRegisterClick, onMoreInfo, searchQuery = '' }: EventsProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('Todas las áreas');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [events, setEvents] = useState<Event[]>(eventsProp ?? []);
+  const [loading, setLoading] = useState(!eventsProp);
+
+  useEffect(() => {
+    if (!eventsProp) {
+      async function loadEvents() {
+        setLoading(true);
+        try {
+          const loadedEvents = await getAllEvents();
+          setEvents(loadedEvents);
+        } catch (error) {
+          console.error('Error al cargar eventos:', error);
+          setEvents([]);
+        } finally {
+          setLoading(false);
+        }
+      }
+      loadEvents();
+    } else {
+      setEvents(eventsProp);
+    }
+  }, [eventsProp]);
 
   // Filtrar eventos por categoría y búsqueda global
   const filteredEvents = events.filter((event) => {
@@ -68,35 +92,40 @@ export function Events({ events, registrations, onRegisterClick, onMoreInfo, sea
 
           {/* Events Grid */}
           <div className="max-w-[1200px] mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {filteredEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  isRegistered={isEventRegistered(event.id)}
-                  onMoreInfo={() => setSelectedEvent(event)}
-                  onRegister={() => onRegisterClick(event)}
-                  onCancel={() => {}}
-                />
-              ))}
-            </div>
-            
-            {filteredEvents.length === 0 && (
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="text-center">
+                  <div className="w-16 h-16 border-4 border-[#0d7d6e] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-gray-600">Cargando eventos...</p>
+                </div>
+              </div>
+            ) : filteredEvents.length === 0 ? (
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 text-center shadow-sm">
                 <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
                   <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                   </svg>
                 </div>
                 <h3 className="text-xl text-gray-800 mb-2" style={{ fontWeight: 600 }}>
-                  No se encontraron resultados
+                  No hay eventos disponibles
                 </h3>
                 <p className="text-gray-600">
-                  {searchQuery 
-                    ? `No hay eventos o clases que coincidan con "${searchQuery}"`
-                    : 'No hay eventos disponibles en esta área'
-                  }
+                  {searchQuery ? `No se encontraron eventos que coincidan con "${searchQuery}"` : 'Aún no hay eventos publicados en esta categoría'}
                 </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                {filteredEvents.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    isRegistered={isEventRegistered(event.id)}
+                    estado={estadosPorEvento[event.id]}
+                    onMoreInfo={() => setSelectedEvent(event)}
+                    onRegister={() => onRegisterClick(event)}
+                    onCancel={() => {}}
+                  />
+                ))}
               </div>
             )}
           </div>
