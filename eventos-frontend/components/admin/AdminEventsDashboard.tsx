@@ -5,6 +5,7 @@
 // Notas: No se renombra para mantener imports existentes.
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Users, ClipboardList, Edit, FileBarChart2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { adminServices } from '../../lib/admin/services';
 import { AdminArea, AdminDocente, AdminEvent, AdminRegistro } from '../../lib/admin/types';
 import { AdminLayout } from './AdminLayout';
@@ -23,6 +24,8 @@ interface FormViewState extends ActiveViewState {
 
 interface ReportsViewState extends ActiveViewState {
   type: 'reports';
+  eventoId?: string;
+  regional?: string;
 }
 
 interface RegisterState {
@@ -84,8 +87,12 @@ export function AdminEventsDashboard() {
     setView(state);
   };
 
-  const handleShowReports = () => {
-    const state: ReportsViewState = { type: 'reports' };
+  const handleShowReports = (evento?: AdminEvent) => {
+    const state: ReportsViewState = {
+      type: 'reports',
+      eventoId: evento?.id ?? undefined,
+      regional: evento?.regional ?? undefined,
+    };
     setView(state);
   };
 
@@ -93,19 +100,32 @@ export function AdminEventsDashboard() {
     // Detectar si es edición o creación
     const isEdit = view.type === 'form' && (view as FormViewState).target !== null;
     
-    if (isEdit && view.type === 'form') {
-      // Actualizar evento existente
-      const formView = view as FormViewState;
-      await adminServices.updateEvento(formView.target!.id, values);
-    } else {
-      // Crear nuevo evento
-      await adminServices.createEvento(values);
+    try {
+      // Mostrar notificación de carga
+      const loadingToastId = toast.loading(isEdit ? 'Actualizando evento...' : 'Creando evento...');
+
+      if (isEdit && view.type === 'form') {
+        // Actualizar evento existente
+        const formView = view as FormViewState;
+        await adminServices.updateEvento(formView.target!.id, values);
+      } else {
+        // Crear nuevo evento
+        await adminServices.createEvento(values);
+      }
+      
+      // Mostrar notificación de éxito
+      toast.dismiss(loadingToastId);
+      toast.success(isEdit ? 'Evento actualizado correctamente' : 'Evento creado con éxito');
+      
+      // Refrescar lista de eventos
+      const refreshed = await adminServices.listEventos();
+      setEventos(refreshed);
+      setView({ type: 'list' });
+    } catch (error: any) {
+      // Mostrar notificación de error
+      toast.error(error.message || 'Error al procesar el evento');
+      console.error('Error en handleFormSubmit:', error);
     }
-    
-    // Refrescar lista de eventos
-    const refreshed = await adminServices.listEventos();
-    setEventos(refreshed);
-    setView({ type: 'list' });
   };
 
   const handleCloseForm = () => {
@@ -178,7 +198,14 @@ export function AdminEventsDashboard() {
         title="Reportes de eventos"
         description="Analiza la ocupación y descarga reportes consolidados en CSV"
       >
-        <ReportsView eventos={eventos} registros={registros} docentes={docentes} onBack={() => setView({ type: 'list' })} />
+        <ReportsView
+          eventos={eventos}
+          registros={registros}
+          docentes={docentes}
+          onBack={() => setView({ type: 'list' })}
+          initialSelectedRegional={(view as ReportsViewState).regional}
+          initialEventoId={(view as ReportsViewState).eventoId}
+        />
       </AdminLayout>
     );
   }
@@ -315,6 +342,15 @@ export function AdminEventsDashboard() {
                         >
                           <Users className="h-3.5 w-3.5" />
                           Registrar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShowReports(evento)}
+                          className="inline-flex items-center gap-2 rounded-full border border-[#0d7d6e] px-3 py-1.5 text-xs font-semibold text-[#0d7d6e] transition hover:bg-[#0d7d6e] hover:text-white"
+                          title="Ver reportes de este evento"
+                        >
+                          <FileBarChart2 className="h-3.5 w-3.5" />
+                          Ver reportes
                         </button>
                         <button
                           type="button"

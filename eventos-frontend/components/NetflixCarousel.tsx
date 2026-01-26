@@ -15,7 +15,7 @@ interface NetflixCarouselProps {
   };
 }
 
-export function NetflixCarousel({ children, itemsPerView = { mobile: 1, tablet: 2, desktop: 5 } }: NetflixCarouselProps) {
+export function NetflixCarousel({ children, itemsPerView = { mobile: 1, tablet: 2, desktop: 3 } }: NetflixCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsToShow, setItemsToShow] = useState(itemsPerView.desktop);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -70,7 +70,7 @@ export function NetflixCarousel({ children, itemsPerView = { mobile: 1, tablet: 
       {/* Carousel Container */}
       <div ref={containerRef} className="overflow-hidden">
         <div
-          className="flex transition-transform duration-500 ease-out gap-4 md:gap-6"
+          className="flex transition-transform duration-500 ease-out gap-5 md:gap-8"
           style={{
             transform: `translateX(${translateValue}%)`,
           }}

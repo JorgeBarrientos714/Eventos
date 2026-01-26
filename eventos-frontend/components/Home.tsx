@@ -9,22 +9,14 @@ import { useEffect, useState } from 'react';
 import type { Event } from '../types/event';
 import { getAllEvents } from '../lib/events';
 import { docenteAuth } from '../lib/authDocente';
+import FondoPanel from '../assets/Fondo Panel.jpg';
+import PersonasPanel from '../assets/Personas panel.png';
 
 interface HomeProps {
   onNavigate?: (page: string) => void;
   searchQuery?: string;
   events?: Event[];
 }
-
-// Mock data para Clases
-const classes = [
-  { id: 1, title: 'Danza folclórica', image: 'https://images.unsplash.com/photo-1732023998275-95390af360ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb2xrJTIwZGFuY2UlMjBjbGFzc3xlbnwxfHx8fDE3NjgyMzgxODV8MA&ixlib=rb-4.1.0&q=80&w=1080' },
-  { id: 2, title: 'Guitarra', image: 'https://images.unsplash.com/photo-1758524944402-1903b38f848f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxndWl0YXIlMjBsZXNzb24lMjBtdXNpY3xlbnwxfHx8fDE3NjgyMzgxODV8MA&ixlib=rb-4.1.0&q=80&w=1080' },
-  { id: 3, title: 'Pintura', image: 'https://images.unsplash.com/photo-1611257309952-1389bc301a72?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYWludGluZyUyMGFydCUyMGNsYXNzfGVufDF8fHx8MTc2ODIzNDc5N3ww&ixlib=rb-4.1.0&q=80&w=1080' },
-  { id: 4, title: 'Zumba', image: 'https://images.unsplash.com/photo-1717500251805-cd0306a48de4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx6dW1iYSUyMGZpdG5lc3MlMjBjbGFzc3xlbnwxfHx8fDE3NjgyMzgxODZ8MA&ixlib=rb-4.1.0&q=80&w=1080' },
-  { id: 5, title: 'Marimba', image: 'https://images.unsplash.com/photo-1682268294570-616e9ca9791b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYXJpbWJhJTIwbXVzaWMlMjBpbnN0cnVtZW50fGVufDF8fHx8MTc2ODIzODE4Nnww&ixlib=rb-4.1.0&q=80&w=1080' },
-  { id: 6, title: 'Yoga', image: 'https://images.unsplash.com/photo-1717500251805-cd0306a48de4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx6dW1iYSUyMGZpdG5lc3MlMjBjbGFzc3xlbnwxfHx8fDE3NjgyMzgxODZ8MA&ixlib=rb-4.1.0&q=80&w=1080' },
-];
 
 // Mock data para Avisos
 const announcements = [
@@ -44,6 +36,7 @@ const announcements = [
 
 export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
   const [upcomingEvents, setUpcomingEvents] = useState<Array<{ id: string | number; title: string; area: string; image: string }>>([]);
+  const [classesData, setClassesData] = useState<Array<{ id: string | number; title: string; area: string; image: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [allEventsData, setAllEventsData] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -59,18 +52,32 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
           docenteAuth.me().catch(() => null),
         ]);
         setAllEventsData(eventos);
-        const mapped = eventos.map(e => ({
-          id: e.id,
-          title: e.title,
-          area: e.category,
-          image: e.image,
-        }));
-        setUpcomingEvents(mapped);
+        const visibles = eventos.filter(e => (e.estado || '').toLowerCase() !== 'cancelado');
+        const normalizeTipo = (tipo?: string) => (tipo ?? '').toString().toLowerCase();
+        const mappedEventos = visibles
+          .filter((e) => normalizeTipo(e.tipoEvento) !== 'clase')
+          .map((e) => ({
+            id: e.id,
+            title: e.title,
+            area: e.category,
+            image: e.image,
+          }));
+        const mappedClases = visibles
+          .filter((e) => normalizeTipo(e.tipoEvento) === 'clase')
+          .map((e) => ({
+            id: e.id,
+            title: e.title,
+            area: e.category,
+            image: e.image,
+          }));
+        setUpcomingEvents(mappedEventos);
+        setClassesData(mappedClases);
         if (me?.nombreCompleto) setDocenteNombre(me.nombreCompleto);
       } catch (error) {
         console.error('Error al cargar eventos:', error);
         setUpcomingEvents([]);
         setAllEventsData([]);
+        setClassesData([]);
       } finally {
         setLoading(false);
       }
@@ -82,18 +89,158 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
   const filteredUpcomingEvents = upcomingEvents.filter((event) => {
     if (!searchQuery) return true;
     return event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           event.area.toLowerCase().includes(searchQuery.toLowerCase());
+      event.area.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  const filteredClasses = classes.filter((classItem) => {
+  const filteredClasses = classesData.filter((classItem) => {
     if (!searchQuery) return true;
-    return classItem.title.toLowerCase().includes(searchQuery.toLowerCase());
+    return classItem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      classItem.area.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   const hasResults = filteredUpcomingEvents.length > 0 || filteredClasses.length > 0;
 
   return (
+
+
+
+
     <div className="pb-0 pt-0">
+
+      {/* Hero Banner */}
+      <section
+        className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 pb-8"
+        aria-label="Banner de bienvenida al portal"
+      >
+        <div className="rounded-[28px]">
+          <div
+            className="
+              relative w-full overflow-hidden rounded-[28px]
+
+              /* ───────── ALTURA GENERAL ─────────
+                 ↑ Ajusta PRIMERO esto si algo se recorta
+                 ↑ Mobile debe ser más alto que desktop */
+              h-[320px]     /* Mobile */
+              sm:h-[340px]  /* Tablets */
+              md:h-[650px]  /* Desktop (diseño base) */
+            "
+          >
+
+            {/* =====================================================
+                PERSONAS (IMAGEN PRINCIPAL)
+                ===================================================== */}
+            <div className="absolute inset-0 z-30 rounded-[28px] overflow-hidden">
+              <img
+                src={PersonasPanel.src}
+                alt=""
+                className="
+                  w-full h-full object-cover
+
+                  /* ───────── MOBILE: SUBIR IMAGEN ─────────
+                     ↓ Sube valores (%) para mover imagen hacia arriba
+                     ↓ Recomendado: 18%–26%
+                     ↓ MENOR número = más aire arriba */
+                  object-[50%_22%]
+                  sm:object-[60%_24%]
+
+                  /* ───────── DESKTOP: CENTRADA ─────────
+                     ✅ Personas completas
+                     ✅ NO tocar si ya se ve bien */
+                  md:object-center
+                "
+              />
+            </div>
+
+            {/* =====================================================
+                FONDO + GRADIENTE (AQUÍ SE "HACE EL CORTE" EN DESKTOP)
+                ===================================================== */}
+            <div
+              className="
+                absolute left-0 right-0 z-10 rounded-[28px] overflow-hidden
+
+                /* ───────── ALTURA DEL FONDO ─────────
+                   ↓ BAJA este valor para que el 'corte'
+                   ↓ se sienta SIN afectar personas */
+                h-[60%]       /* Mobile */
+                sm:h-[73%]
+                md:h-[60%]    /* Desktop */
+
+                /* ───────── POSICIÓN DESDE ARRIBA ─────────
+                   ↓ SUBE este valor para cortar más abajo
+                   ↓ BAJA para que respire más */
+                top-[80px]
+                sm:top-[48px]
+                md:top-[160px]
+              "
+              aria-hidden="true"
+            >
+              <img
+                src={FondoPanel.src}
+                alt=""
+                className="w-full h-full object-cover object-center"
+              />
+
+              {/* ───────── GRADIENTE ─────────
+                 Ajusta intensidad aquí si el texto
+                 necesita más/menos contraste */}
+              <div className="
+                absolute inset-0 pointer-events-none
+                bg-gradient-to-r
+                from-[#042d27]
+                via-[rgba(1,95,80,0.75)]
+                to-transparent
+              " />
+            </div>
+
+            {/* =====================================================
+                TEXTO (YA RESPONSIVE)
+                ===================================================== */}
+            <div
+              className="
+                relative z-40 h-full flex flex-col justify-center
+                px-4 sm:px-6 md:px-12
+                max-w-[600px]
+              "
+            >
+              {/* TÍTULO 1 */}
+              <p
+                className="text-white italic font-medium leading-[1.1]"
+                style={{
+                  /* Control total del tamaño en todos los dispositivos */
+                  fontSize: 'clamp(1.25rem, 2.2vw + 0.5rem, 2.85rem)'
+                }}
+              >
+                Bienvenido al
+              </p>
+
+              {/* TÍTULO 2 */}
+              <p
+                className="text-white font-extrabold leading-[1.05] tracking-tight mb-2"
+                style={{
+                  fontSize: 'clamp(1.375rem, 2.4vw + 0.55rem, 3rem)'
+                }}
+              >
+                Portal INPREMA
+              </p>
+
+              {/* DESCRIPCIÓN */}
+              <p
+                className="text-white font-medium max-w-[40ch]"
+                style={{
+                  fontSize: 'clamp(0.85rem, 0.75vw + 0.6rem, 1.125rem)',
+                  lineHeight: '1.35'
+                }}
+              >
+                Entérate e inscríbete en los siguientes eventos hechos especialmente para ti.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+
+
       {/* Sección de Identificación de Docente */}
       <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 pt-8 pb-6">
         <div className="bg-gradient-to-r from-[#0d7d6e] to-[#0ead93] rounded-2xl p-6 md:p-8 shadow-lg">
@@ -152,28 +299,7 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
         </div>
       </div>
 
-      {/* Hero Banner */}
-      <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 pb-8">
-        <div className="relative h-[250px] md:h-[292px] rounded-[28px] overflow-hidden shadow-xl">
-          <img
-            src={'https://images.unsplash.com/photo-1732023998275-95390af360ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080'}
-            alt="Portal INPREMA"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#042d27] via-[rgba(1,95,80,0.75)] to-transparent" />
-          <div className="relative h-full flex flex-col justify-center px-6 md:px-12">
-            <p className="text-white text-2xl md:text-[44.872px] mb-2" style={{ fontWeight: 500, fontStyle: 'italic' }}>
-              Bienvenido al
-            </p>
-            <p className="text-white text-2xl md:text-[44.872px] mb-4" style={{ fontWeight: 700 }}>
-              Portal INPREMA
-            </p>
-            <p className="text-white text-sm md:text-[18px] max-w-[366px]" style={{ fontWeight: 500 }}>
-              Entérate e inscríbete en los siguientes eventos hechos especialmente para ti.
-            </p>
-          </div>
-        </div>
-      </div>
+
 
       {/* Mensaje de no resultados */}
       {searchQuery && !hasResults && (
@@ -199,12 +325,12 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
         <h2 className="text-3xl md:text-[54px] text-[#636363] mb-6" style={{ fontWeight: 700 }}>
           Próximos eventos
         </h2>
-        
+
         <div className="relative bg-gradient-to-r from-[#0d7665] to-[#0ead93] rounded-[15px] p-6 md:p-8">
           <NetflixCarousel>
             {filteredUpcomingEvents.map((event) => (
-              <div 
-                key={event.id} 
+              <div
+                key={event.id}
                 className="bg-white rounded-[15px] shadow-lg overflow-hidden h-full transition-transform duration-300 ease-out hover:scale-105 hover:shadow-2xl cursor-pointer"
               >
                 <div className="h-[256px] overflow-hidden">
@@ -221,12 +347,12 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
                   <h3 className="text-[#636363] text-[18px] mb-3" style={{ fontWeight: 700 }}>
                     {event.title}
                   </h3>
-                  <button 
+                  <button
                     onClick={() => {
                       const fullEvent = allEventsData.find(e => e.id === event.id);
                       if (fullEvent) setSelectedEvent(fullEvent);
                     }}
-                    className="border border-[#0e9c85] text-[#0e9c85] px-6 py-1.5 rounded-[27px] text-[16px] hover:bg-[#0e9c85] hover:text-white transition-colors" 
+                    className="border border-[#0e9c85] text-[#0e9c85] px-6 py-1.5 rounded-[27px] text-[16px] hover:bg-[#0e9c85] hover:text-white transition-colors"
                     style={{ fontWeight: 700 }}
                   >
                     Más información
@@ -243,12 +369,12 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
         <h2 className="text-3xl md:text-[54px] text-[#636363] mb-6" style={{ fontWeight: 700 }}>
           Clases
         </h2>
-        
+
         <div className="relative bg-gradient-to-r from-[#0d7665] to-[#0ead93] rounded-[15px] p-6 md:p-8 mb-8">
           <NetflixCarousel>
-            {classes.filter((c) => !searchQuery || c.title.toLowerCase().includes(searchQuery.toLowerCase())).map((classItem) => (
-              <div 
-                key={classItem.id} 
+            {filteredClasses.map((classItem) => (
+              <div
+                key={classItem.id}
                 className="bg-white rounded-[15px] shadow-lg overflow-hidden h-full transition-transform duration-300 ease-out hover:scale-105 hover:shadow-2xl cursor-pointer"
               >
                 <div className="h-[256px] overflow-hidden">
@@ -259,10 +385,20 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
                   />
                 </div>
                 <div className="p-4 text-center">
+                  <p className="text-[#0d7d6e] text-xs mb-1" style={{ fontWeight: 600 }}>
+                    {classItem.area}
+                  </p>
                   <h3 className="text-[#636363] text-[18px] mb-3" style={{ fontWeight: 700 }}>
                     {classItem.title}
                   </h3>
-                  <button className="border border-[#0e9c85] text-[#0e9c85] px-6 py-1.5 rounded-[27px] text-[16px] hover:bg-[#0e9c85] hover:text-white transition-colors" style={{ fontWeight: 700 }}>
+                  <button
+                    onClick={() => {
+                      const fullEvent = allEventsData.find((e) => String(e.id) === String(classItem.id));
+                      if (fullEvent) setSelectedEvent(fullEvent);
+                    }}
+                    className="border border-[#0e9c85] text-[#0e9c85] px-6 py-1.5 rounded-[27px] text-[16px] hover:bg-[#0e9c85] hover:text-white transition-colors"
+                    style={{ fontWeight: 700 }}
+                  >
                     Más información
                   </button>
                 </div>
@@ -290,7 +426,7 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
         <h2 className="text-3xl md:text-[54px] text-[#636363] mb-6" style={{ fontWeight: 700 }}>
           Avisos
         </h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {announcements.map((announcement) => (
             <div key={announcement.id} className="flex flex-col sm:flex-row bg-white rounded-[17px] shadow-lg overflow-hidden">
@@ -316,8 +452,8 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
 
       {/* Event Modal */}
       {selectedEvent && (
-        <EventModal 
-          event={selectedEvent} 
+        <EventModal
+          event={selectedEvent}
           isRegistered={false}
           onClose={() => setSelectedEvent(null)}
           onRegister={() => {

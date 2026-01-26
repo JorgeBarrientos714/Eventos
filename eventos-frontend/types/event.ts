@@ -8,7 +8,9 @@ export interface Event {
   category: string;
   image: string;
   isIntermediate: boolean;
+  tipoEvento?: 'evento' | 'clase';
   cuposDisponibles?: number;
   cuposTotales?: number;
   cantidadInvPermitidos?: number;
+  estado?: string; // activo | pospuesto | cancelado
 }

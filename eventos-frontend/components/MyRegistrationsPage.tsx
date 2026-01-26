@@ -16,7 +16,7 @@ interface MyRegistrationsProps {
 export function MyRegistrations({ events, registrations, searchQuery = '' }: MyRegistrationsProps) {
   const registeredEvents = events.filter(event =>
     registrations.some(reg => reg.eventId === event.id)
-  );
+  ).filter(event => (event.estado || '').toLowerCase() !== 'cancelado');
 
   // Filtrar por búsqueda global
   const filteredEvents = registeredEvents.filter((event) => {

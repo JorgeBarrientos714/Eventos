@@ -70,12 +70,21 @@
 }
 /* Fondo global del sitio (aplica a todas las páginas) */
 .site-bg {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fondo fijo compatible con móvil mediante pseudo-elemento */
+.site-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background-image: url("../assets/Edificio%20Color%20Blanco.jpg");
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
-  background-attachment: fixed;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }

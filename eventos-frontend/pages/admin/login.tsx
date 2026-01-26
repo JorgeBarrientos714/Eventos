@@ -242,7 +242,11 @@ export default function AdminLoginPage() {
           <input
             type="text"
             value={dni}
-            onChange={(e) => setDni(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, '').slice(0, 15);
+              setDni(value);
+            }}
+            maxLength={15}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#0d7d6e] focus:outline-none focus:ring-2 focus:ring-[#0d7d6e]/20"
             placeholder="0801..."
             required

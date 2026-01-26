@@ -30,8 +30,8 @@ export function Sidebar({ selectedCategory, onSelectCategory, showMobile, onClos
     <>
       {/* Desktop Sidebar */}
       {/* Desktop Sidebar - Fijo con scroll independiente */}
-      <aside className="hidden md:block w-64 bg-white/40 backdrop-blur-md border-r border-white/30 fixed left-0 top-[73px] bottom-0 overflow-y-auto shadow-lg">
-        <div className="p-6">
+      <aside className="hidden md:block w-64 bg-white/40 backdrop-blur-md border-r border-white/30 fixed left-0 top-[73px] bottom-0 overflow-y-auto shadow-lg z-40">
+        <div className="p-6 pt-20">
           <nav className="space-y-2">
             {categories.map((category) => (
               <button

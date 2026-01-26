@@ -1285,27 +1285,18 @@ export class EventosService {
       throw new NotFoundException(`Docente con ID ${idDocente} no encontrado`);
     }
 
-    // 3. Validar que no esté ya inscrito (OBLIGATORIO - NO permitir duplicados)
+    // 3. Verificar si ya existe un registro del docente para el evento
     const registroExistente = await this.registroEventoRepository.findOne({
-      where: {
-        docente: { id: idDocente },
-        evento: { id: idEvento },
-      },
-      relations: ['estado'],
+      where: { docente: { id: idDocente }, evento: { id: idEvento } },
+      relations: ['estado', 'evento'],
     });
 
-    if (registroExistente) {
-      throw new BadRequestException(
-        `El docente ya está inscrito en este evento. Estado actual: ${registroExistente.estado?.nombreEstado || 'Sin estado'}`
-      );
-    }
-
-    // 4. Validar cupos disponibles
+    // 4. Validar cupos disponibles (solo inscripciones activas)
     const cuposOcupados = await this.registroEventoRepository.count({
-      where: { evento: { id: idEvento } },
+      where: { evento: { id: idEvento }, estado: { nombreEstado: 'Inscrito' } as any },
     });
-
-    if (evento.cuposTotales && cuposOcupados >= evento.cuposTotales) {
+    const noHayCupos = Boolean(evento.cuposTotales) && cuposOcupados >= (evento.cuposTotales || 0);
+    if (!registroExistente && noHayCupos) {
       throw new BadRequestException('No hay cupos disponibles para este evento');
     }
 
@@ -1327,20 +1318,55 @@ export class EventosService {
     await queryRunner.startTransaction();
 
     try {
-      // 7. Crear registro de evento
-      const estadoInscrito = await queryRunner.manager.findOne(net_estados, {
-        where: { id: 4 }, // 4 = Inscrito
-      });
+      const estadoInscrito = await queryRunner.manager.findOne(net_estados, { where: { id: 4 } }); // 4 = Inscrito
+      const estadoEspera = await queryRunner.manager.findOne(net_estados, { where: { id: 5 } });  // 5 = En espera
 
-      const nuevoRegistro = queryRunner.manager.create(registro_evento, {
-        evento: evento,
-        docente: docente,
-        fechaRegistro: new Date(),
-        cantidadInvDocente: cantidadInvitados,
-        estado: estadoInscrito || undefined,
-      });
+      let registroGuardado: registro_evento;
 
-      const registroGuardado = await queryRunner.manager.save(registro_evento, nuevoRegistro);
+      if (registroExistente) {
+        // Reincripción: si estaba Cancelado, cambiar a Inscrito o En espera según cupos
+        const nombreEstadoActual = registroExistente.estado?.nombreEstado || '';
+        if (nombreEstadoActual.toLowerCase() !== 'cancelado') {
+          throw new BadRequestException(`El docente ya está inscrito en este evento. Estado actual: ${registroExistente.estado?.nombreEstado || 'Sin estado'}`);
+        }
+
+        // Determinar nuevo estado según disponibilidad
+        const nuevoEstado = noHayCupos ? estadoEspera : estadoInscrito;
+        if (!nuevoEstado) {
+          throw new NotFoundException('No está configurado el estado de reinscripción');
+        }
+
+        registroExistente.estado = nuevoEstado;
+        registroExistente.fechaRegistro = new Date();
+        registroExistente.cantidadInvDocente = cantidadInvitados;
+        registroGuardado = await queryRunner.manager.save(registro_evento, registroExistente);
+
+        // Actualizar cupos si pasó a Inscrito
+        if (!noHayCupos && evento.cuposTotales && evento.cuposDisponibles != null) {
+          const reloadedEvento = await queryRunner.manager.findOne(net_eventos, { where: { id: evento.id } });
+          if (reloadedEvento) {
+            const actuales = reloadedEvento.cuposDisponibles ?? 0;
+            reloadedEvento.cuposDisponibles = Math.max(0, (reloadedEvento.cuposTotales ?? 0) - (cuposOcupados + 1));
+            await queryRunner.manager.save(net_eventos, reloadedEvento);
+          }
+        }
+      } else {
+        // Nueva inscripción
+        const nuevoRegistro = queryRunner.manager.create(registro_evento, {
+          evento: evento,
+          docente: docente,
+          fechaRegistro: new Date(),
+          cantidadInvDocente: cantidadInvitados,
+          estado: estadoInscrito || undefined,
+        });
+        registroGuardado = await queryRunner.manager.save(registro_evento, nuevoRegistro);
+
+        // Actualizar cupos disponibles
+        if (evento.cuposTotales && evento.cuposDisponibles !== null) {
+          evento.cuposDisponibles = (evento.cuposTotales || 0) - (cuposOcupados + 1);
+          await queryRunner.manager.save(net_eventos, evento);
+        }
+      }
 
       // 8. Guardar discapacidades si tiene
       let discapacidadesRegistradas = 0;
@@ -1366,30 +1392,32 @@ export class EventosService {
         });
       }
 
-      // 9. Guardar invitados si lleva
-      if (llevaInvitados && invitados && invitados.length > 0) {
-        for (const invitado of invitados) {
-          const nuevoInvitado = queryRunner.manager.create(net_invitados_docentes, {
-            idRegistroEvento: registroGuardado.id,
-            dniInvitado: invitado.dniInvitado,
-            nombreInvitado: invitado.nombreInvitado,
-          });
-          await queryRunner.manager.save(net_invitados_docentes, nuevoInvitado);
+      // 9. Guardar invitados si lleva (reemplazar los existentes en reincripción)
+      if (llevaInvitados) {
+        // Eliminar invitados previos
+        await queryRunner.manager.delete(net_invitados_docentes, { idRegistroEvento: registroGuardado.id });
+        if (invitados && invitados.length > 0) {
+          for (const invitado of invitados) {
+            const nuevoInvitado = queryRunner.manager.create(net_invitados_docentes, {
+              idRegistroEvento: registroGuardado.id,
+              dniInvitado: invitado.dniInvitado,
+              nombreInvitado: invitado.nombreInvitado,
+            });
+            await queryRunner.manager.save(net_invitados_docentes, nuevoInvitado);
+          }
         }
-      }
-
-      // 10. Actualizar cupos disponibles
-      if (evento.cuposTotales && evento.cuposDisponibles !== null) {
-        evento.cuposDisponibles = evento.cuposTotales - (cuposOcupados + 1);
-        await queryRunner.manager.save(net_eventos, evento);
       }
 
       // 11. Commit de la transacción
       await queryRunner.commitTransaction();
 
+      const mensajeFinal = registroExistente
+        ? (noHayCupos ? 'Reinscripción realizada: en espera' : 'Reinscripción realizada: inscrito')
+        : 'Inscripción completada exitosamente';
+
       return {
         idRegistro: registroGuardado.id,
-        mensaje: 'Inscripción completada exitosamente',
+        mensaje: mensajeFinal,
         cuposRestantes: evento.cuposDisponibles || 0,
         cantidadInvitados: cantidadInvitados,
         discapacidadesRegistradas: discapacidadesRegistradas,

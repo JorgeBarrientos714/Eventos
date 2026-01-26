@@ -6,6 +6,7 @@
 // Relacionados: AdminEventsDashboard, AdminLayout, lib/admin/types.ts, lib/admin/services.ts, context/AdminAuthContext.tsx
 // Notas: No se renombra para preservar imports actuales.
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { AdminArea, AdminEvent } from '../../lib/admin/types';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { adminServices } from '../../lib/admin/services';
@@ -300,9 +301,22 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
     }));
   };
 
+  // Prevenir que Enter envíe el formulario en inputs específicos
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
+  };
+
   const handleImagenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validar tamaño máximo (25MB)
+      if (file.size > 25 * 1024 * 1024) {
+        toast.error('La imagen es muy grande. El tamaño máximo es 25MB.');
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagenPreview(reader.result as string);
@@ -322,12 +336,12 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
     const payload: AdminEventFormValues = {
       ...formData,
       cuposDisponibles: isEdit ? formData.cuposDisponibles : formData.cuposTotales,
+      // Derivar tipoEvento explícito para el backend
+      tipoEvento: formData.terapiaOClase === 'clase' ? 'clase' : 'evento',
     };
 
-    // Agregar cantidad de invitados permitidos si se habilitó
-    if (permitirInvitados) {
-      (payload as any).cantidadInvitados = cantidadInvitados;
-    }
+    // Agregar cantidad de invitados permitidos (0 si no está habilitado)
+    (payload as any).cantidadInvitados = permitirInvitados ? cantidadInvitados : 0;
 
     if (imagenBase64) {
       (payload as any).imagenBase64 = imagenBase64;
@@ -388,6 +402,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
           value={formData.descripcion}
           onChange={(e) => setFormData((prev) => ({ ...prev, descripcion: e.target.value }))}
           placeholder="Describe los objetivos del evento"
+          onKeyDown={handleKeyDown}
         />
       </div>
 
@@ -419,14 +434,14 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
         </div>
         <div className="space-y-2">
           <label className="text-sm font-semibold text-gray-600">Tipo de actividad</label>
-          <select
+            <select
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#0d7d6e] focus:outline-none focus:ring-2 focus:ring-[#0d7d6e]/20"
             value={formData.terapiaOClase}
             onChange={(e) => setFormData((prev) => ({ ...prev, terapiaOClase: e.target.value as 'terapia' | 'clase' }))}
-          >
-            <option value="terapia">Terapia</option>
+            >
+            <option value="terapia">Evento</option>
             <option value="clase">Clase</option>
-          </select>
+            </select>
           <p className="text-xs text-gray-500">Se filtra en el frontend del docente.</p>
         </div>
       </div>
@@ -539,6 +554,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
             value={formData.direccion}
             onChange={(e) => setFormData((prev) => ({ ...prev, direccion: e.target.value }))}
             placeholder="Referencia específica (ej. Instalaciones INPREMA)"
+            onKeyDown={handleKeyDown}
           />
         </div>
       </div>
@@ -553,6 +569,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#0d7d6e] focus:outline-none focus:ring-2 focus:ring-[#0d7d6e]/20"
             value={formData.fechaInicio}
             onChange={(e) => setFormData((prev) => ({ ...prev, fechaInicio: e.target.value }))}
+            onKeyDown={handleKeyDown}
           />
         </div>
         <div className="space-y-2">
@@ -562,6 +579,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#0d7d6e] focus:outline-none focus:ring-2 focus:ring-[#0d7d6e]/20"
             value={formData.fechaFin}
             onChange={(e) => setFormData((prev) => ({ ...prev, fechaFin: e.target.value }))}
+            onKeyDown={handleKeyDown}
           />
         </div>
       </div>
@@ -574,6 +592,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#0d7d6e] focus:outline-none focus:ring-2 focus:ring-[#0d7d6e]/20"
             value={formData.horaInicio}
             onChange={(e) => setFormData((prev) => ({ ...prev, horaInicio: e.target.value }))}
+            onKeyDown={handleKeyDown}
           />
         </div>
         <div className="space-y-2">
@@ -583,6 +602,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#0d7d6e] focus:outline-none focus:ring-2 focus:ring-[#0d7d6e]/20"
             value={formData.horaFin}
             onChange={(e) => setFormData((prev) => ({ ...prev, horaFin: e.target.value }))}
+            onKeyDown={handleKeyDown}
           />
         </div>
       </div>
@@ -595,7 +615,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
             min={1}
             max={300}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#0d7d6e] focus:outline-none focus:ring-2 focus:ring-[#0d7d6e]/20"
-            value={formData.cuposTotales}
+            value={formData.cuposTotales || ''}
             onChange={(e) => {
               const total = Math.min(Number(e.target.value) || 0, 300);
               setFormData((prev) => ({
@@ -604,6 +624,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
                 cuposDisponibles: isEdit ? prev.cuposDisponibles : total,
               }));
             }}
+            onKeyDown={handleKeyDown}
             placeholder="Máximo 300"
           />
           <p className="text-xs text-gray-500">Límite máximo: 300 cupos</p>
@@ -687,7 +708,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
               <img src={imagenPreview} alt="Preview" className="h-32 w-full object-cover rounded" />
             </div>
           )}
-          <p className="text-xs text-gray-500">Formatos: JPG, PNG, GIF, WEBP. Máximo 5MB.</p>
+          <p className="text-xs text-gray-500">Formatos: JPG, PNG, GIF, WEBP. Máximo 25MB.</p>
         </div>
       </div>
 

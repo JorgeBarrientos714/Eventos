@@ -26,7 +26,8 @@ export default function MyRegistrationsPage() {
         // Cargar mis inscripciones desde backend
         const me = await docenteAuth.me();
         const mis = await registroServices.listarMisInscripciones();
-        const mapped: Registration[] = (mis || []).map((r: any) => ({
+        const activos = (mis || []).filter((r: any) => (r?.estado || '').toLowerCase() !== 'cancelado');
+        const mapped: Registration[] = activos.map((r: any) => ({
           id: String(r.idRegistro),
           eventId: String(r.evento?.id ?? ''),
           teacherDni: me?.nIdentificacion || '',

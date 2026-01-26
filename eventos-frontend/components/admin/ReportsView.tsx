@@ -3,7 +3,7 @@
 // Relacionados: AdminEventsDashboard, lib/admin/types.ts
 // Rutas/Endpoints usados: ninguno directo (usa datos cargados en memoria)
 // Notas: No se renombra para preservar imports.
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Download } from 'lucide-react';
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { AdminDocente, AdminEvent, AdminRegistro } from '../../lib/admin/types';
@@ -13,13 +13,17 @@ interface ReportsViewProps {
   registros: AdminRegistro[];
   docentes: AdminDocente[];
   onBack: () => void;
+  initialSelectedRegional?: string;
+  initialEventoId?: string;
 }
  
 const COLORS = ['#0d7d6e', '#dcc594'];
 
 const calculateAge = (birthDate: string) => {
-  const today = new Date();
+  if (!birthDate) return '—';
   const birth = new Date(birthDate);
+  if (Number.isNaN(birth.getTime())) return '—';
+  const today = new Date();
   let age = today.getFullYear() - birth.getFullYear();
   const monthDifference = today.getMonth() - birth.getMonth();
   if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birth.getDate())) {
@@ -28,9 +32,18 @@ const calculateAge = (birthDate: string) => {
   return age;
 };
 
-export function ReportsView({ eventos, registros, docentes, onBack }: ReportsViewProps) {
-  const [selectedRegional, setSelectedRegional] = useState('');
-  const [selectedEventoId, setSelectedEventoId] = useState('');
+export function ReportsView({ eventos, registros, docentes, onBack, initialSelectedRegional = '', initialEventoId = '' }: ReportsViewProps) {
+  const [selectedRegional, setSelectedRegional] = useState(initialSelectedRegional);
+  const [selectedEventoId, setSelectedEventoId] = useState(initialEventoId);
+
+  // Si viene un evento preseleccionado, alineamos la regional automáticamente
+  useEffect(() => {
+    if (!initialEventoId || selectedRegional) return;
+    const ev = eventos.find((e) => e.id === initialEventoId);
+    if (ev?.regional) {
+      setSelectedRegional(ev.regional);
+    }
+  }, [initialEventoId, selectedRegional, eventos]);
 
   const regionalesDisponibles = useMemo(
     () => Array.from(new Set(eventos.map((evento) => evento.regional))).sort(),
@@ -53,12 +66,10 @@ export function ReportsView({ eventos, registros, docentes, onBack }: ReportsVie
   );
 
   const docentesRegistrados = useMemo(() => {
-    return registrosEvento
-      .map((registro) => ({
-        registro,
-        docente: docentes.find((docente) => docente.dni === registro.dni) ?? null,
-      }))
-      .filter((item) => item.docente !== null) as { registro: AdminRegistro; docente: AdminDocente }[];
+    return registrosEvento.map((registro) => ({
+      registro,
+      docente: docentes.find((docente) => docente.dni === registro.dni) ?? null,
+    }));
   }, [docentes, registrosEvento]);
 
   const chartData = useMemo(() => {
@@ -265,12 +276,12 @@ export function ReportsView({ eventos, registros, docentes, onBack }: ReportsVie
                   <tbody className="divide-y divide-gray-100 text-gray-700">
                     {docentesRegistrados.map(({ docente, registro }) => (
                       <tr key={registro.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-mono text-xs">{docente.dni}</td>
-                        <td className="px-4 py-3 font-medium">{docente.nombre}</td>
-                        <td className="px-4 py-3">{docente.telefono}</td>
-                        <td className="px-4 py-3">{docente.genero}</td>
-                        <td className="px-4 py-3">{calculateAge(docente.fechaNacimiento)}</td>
-                        <td className="px-4 py-3">{docente.municipio}</td>
+                        <td className="px-4 py-3 font-mono text-xs">{docente?.dni ?? registro.dni}</td>
+                        <td className="px-4 py-3 font-medium">{docente?.nombre ?? 'Docente no encontrado'}</td>
+                        <td className="px-4 py-3">{docente?.telefono ?? '—'}</td>
+                        <td className="px-4 py-3">{docente?.genero ?? '—'}</td>
+                        <td className="px-4 py-3">{docente?.fechaNacimiento ? calculateAge(docente.fechaNacimiento) : '—'}</td>
+                        <td className="px-4 py-3">{docente?.municipio ?? '—'}</td>
                         <td className="px-4 py-3 text-xs text-gray-500">
                           {new Date(registro.fechaRegistro).toLocaleString('es-HN')}
                         </td>

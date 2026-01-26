@@ -47,6 +47,10 @@ export function Events({ events: eventsProp, registrations, estadosPorEvento = {
 
   // Filtrar eventos por categoría y búsqueda global
   const filteredEvents = events.filter((event) => {
+    // Mostrar todos los estados cuando la categoría seleccionada es "Todas las áreas"
+    // En otras categorías, opcionalmente se pueden ocultar cancelados si se requiere.
+    const isCanceled = (event.estado || '').toLowerCase() === 'cancelado';
+    if (selectedCategory !== 'Todas las áreas' && isCanceled) return false;
     const matchesCategory = selectedCategory === 'Todas las áreas' || event.category === selectedCategory;
     const matchesSearch = !searchQuery || 
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -120,7 +124,7 @@ export function Events({ events: eventsProp, registrations, estadosPorEvento = {
                     key={event.id}
                     event={event}
                     isRegistered={isEventRegistered(event.id)}
-                    estado={estadosPorEvento[event.id]}
+                    estado={estadosPorEvento[event.id] || event.estado}
                     onMoreInfo={() => setSelectedEvent(event)}
                     onRegister={() => onRegisterClick(event)}
                     onCancel={() => {}}

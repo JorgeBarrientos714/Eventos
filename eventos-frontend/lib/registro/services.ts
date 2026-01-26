@@ -217,9 +217,13 @@ export const registroServices = {
    * Inscripción completa a evento (Paso 2)
    */
   async inscribirDocenteEvento(datos: InscripcionEventoRequest): Promise<InscripcionEventoResponse> {
+    const tkn = typeof window !== 'undefined' ? (localStorage.getItem('docente_token') || undefined) : undefined;
     const response = await fetch(`${API_BASE}/eventos/inscripcion`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(tkn ? { 'Authorization': `Bearer ${tkn}` } : {}),
+      },
       body: JSON.stringify(datos),
     });
     if (!response.ok) {
@@ -264,9 +268,13 @@ export const registroServices = {
     maxInvitados: number;
     espacioRestante: number;
   }> {
+    const tkn = typeof window !== 'undefined' ? (localStorage.getItem('docente_token') || undefined) : undefined;
     const response = await fetch(`${API_BASE}/eventos/inscripcion/agregar-invitados`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(tkn ? { 'Authorization': `Bearer ${tkn}` } : {}),
+      },
       body: JSON.stringify(datos),
     });
     if (!response.ok) {

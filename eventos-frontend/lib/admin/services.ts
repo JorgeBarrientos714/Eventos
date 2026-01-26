@@ -44,6 +44,7 @@ const mapEvento = (evento: any): AdminEvent => {
   const departamento = municipio?.departamento;
   const tipoRaw = (evento?.tipoEvento ?? evento?.TIPO_EVENTO ?? '').toString().toLowerCase();
   const tipoEvento = tipoRaw === 'clase' || tipoRaw === 'evento' ? (tipoRaw as 'clase' | 'evento') : undefined;
+  const estadoRaw = (evento?.estado ?? evento?.ESTADO ?? 'activo').toString().toLowerCase();
   return {
     id: String(evento?.id ?? evento?.ID_EVENTO ?? Date.now()),
     nombre: evento?.nombreEvento ?? evento?.NOMBRE_EVENTO ?? 'Evento',
@@ -64,7 +65,7 @@ const mapEvento = (evento: any): AdminEvent => {
     cuposDisponibles: Number(evento?.cuposDisponibles ?? evento?.CUPOS_DISPONIBLES ?? 0),
     cuposTotales: Number(evento?.cuposTotales ?? evento?.CUPOS_TOTALES ?? 0),
     imagen: evento?.imagenUrl ?? undefined,
-    estado: 'activo',
+    estado: estadoRaw as AdminEvent['estado'],
     claseId: evento?.idClase ? String(evento.idClase) : (evento?.ID_CLASE ? String(evento.ID_CLASE) : undefined),
     departamentoId: departamento?.id ? String(departamento.id) : (departamento?.ID_DEPARTAMENTO ? String(departamento.ID_DEPARTAMENTO) : undefined),
     municipioId: municipio?.id ? String(municipio.id) : (municipio?.ID_MUNICIPIO ? String(municipio.ID_MUNICIPIO) : undefined),
@@ -251,33 +252,12 @@ export const adminServices = {
     const idUsuario = session?.usuario?.id ?? undefined;
     const diasSemanaStr = Array.isArray(values?.diasSemana) ? values.diasSemana.join(',') : values?.diasSemana ?? '';
     const direccionFinal = [values?.aldeaNombre, values?.direccion].filter(Boolean).join(', ');
-    
-    // Subir imagen si existe archivo
-    let imagenUrl = values?.imagen ?? undefined;
-    if (values?.imagenFile) {
-      try {
-        const formData = new FormData();
-        formData.append('imagen', values.imagenFile);
-        
-        const uploadResponse = await fetch(`${API_BASE_URL}/eventos/upload/imagen`, {
-          method: 'POST',
-          body: formData,
-        });
-        
-        if (uploadResponse.ok) {
-          const uploadData = await uploadResponse.json();
-          // Guardar solo la ruta relativa (sin API_BASE_URL)
-          imagenUrl = uploadData.url;
-        }
-      } catch (error) {
-        console.error('Error al subir imagen:', error);
-      }
-    }
+    const tipoEvento = (values?.tipoEvento ?? (values?.terapiaOClase === 'clase' ? 'CLASE' : 'EVENTO')).toString().toUpperCase();
     
     const payload = {
       nombreEvento: values?.nombre ?? '',
       descripcion: values?.descripcion ?? '',
-      tipoEvento: values?.tipoEvento ?? (values?.terapiaOClase === 'clase' ? 'CLASE' : 'EVENTO'),
+      tipoEvento,
       idClase: values?.claseId ? Number(values.claseId) : undefined,
       diasSemana: diasSemanaStr,
       idMunicipio: values?.municipioId ? Number(values.municipioId) : undefined,
@@ -288,11 +268,16 @@ export const adminServices = {
       horaFin: values?.horaFin ?? '',
       cuposDisponibles: values?.cuposDisponibles ?? values?.cuposTotales ?? 0,
       cuposTotales: values?.cuposTotales ?? 0,
-      imagenUrl,
       idUsuario,
       idRegional: values?.idRegional ? Number(values.idRegional) : undefined,
-      cantidadInvPermitidos: values?.cantidadInvitados ? Number(values.cantidadInvitados) : undefined,
+      cantidadInvPermitidos: values?.cantidadInvitados !== undefined ? Number(values.cantidadInvitados) : undefined,
+      estado: values?.estado ? values.estado.toUpperCase() : undefined,
     };
+
+    // Preferir enviar imagen en base64 para almacenamiento en BLOB
+    if (values?.imagenBase64) {
+      (payload as any).imagenBase64 = values.imagenBase64;
+    }
 
     const data = await fetchJSON<any>(`${API_BASE_URL}/eventos/evento`, {
       method: 'POST',
@@ -306,33 +291,12 @@ export const adminServices = {
     const idUsuario = session?.usuario?.id ?? undefined;
     const diasSemanaStr = Array.isArray(values?.diasSemana) ? values.diasSemana.join(',') : values?.diasSemana ?? '';
     const direccionFinal = [values?.aldeaNombre, values?.direccion].filter(Boolean).join(', ');
-    
-    // Subir imagen si existe archivo nuevo
-    let imagenUrl = values?.imagen ?? undefined;
-    if (values?.imagenFile) {
-      try {
-        const formData = new FormData();
-        formData.append('imagen', values.imagenFile);
-        
-        const uploadResponse = await fetch(`${API_BASE_URL}/eventos/upload/imagen`, {
-          method: 'POST',
-          body: formData,
-        });
-        
-        if (uploadResponse.ok) {
-          const uploadData = await uploadResponse.json();
-          // Guardar solo la ruta relativa (sin API_BASE_URL)
-          imagenUrl = uploadData.url;
-        }
-      } catch (error) {
-        console.error('Error al subir imagen:', error);
-      }
-    }
+    const tipoEvento = (values?.tipoEvento ?? (values?.terapiaOClase === 'clase' ? 'CLASE' : 'EVENTO')).toString().toUpperCase();
     
     const payload: any = {
       nombreEvento: values?.nombre ?? '',
       descripcion: values?.descripcion ?? '',
-      tipoEvento: values?.tipoEvento ?? (values?.terapiaOClase === 'clase' ? 'CLASE' : 'EVENTO'),
+      tipoEvento,
       diasSemana: diasSemanaStr,
       direccion: direccionFinal,
       fechaInicio: values?.fechaInicio ?? '',
@@ -342,27 +306,29 @@ export const adminServices = {
       cuposDisponibles: values?.cuposDisponibles ?? 0,
       cuposTotales: values?.cuposTotales ?? 0,
       idUsuario,
+      estado: values?.estado ? values.estado.toUpperCase() : undefined,
     };
 
-    // Agregar imagen solo si se proporciona en base64 (nueva imagen)
-    if (imagenUrl && imagenUrl.startsWith('data:')) {
-      payload.imagenBase64 = imagenUrl;
+    // Agregar imagen si se proporciona en base64 (nueva imagen)
+    if (values?.imagenBase64) {
+      payload.imagenBase64 = values.imagenBase64;
     }
 
     // Agregar campos opcionales solo si existen y tienen valores válidos
-    if (values?.idMunicipio && Number(values.idMunicipio) > 0) {
-      payload.idMunicipio = Number(values.idMunicipio);
-    } else if (values?.municipioId && Number(values.municipioId) > 0) {
-      payload.idMunicipio = Number(values.municipioId);
+    const maybeMunicipio = values?.idMunicipio ?? values?.municipioId;
+    if (maybeMunicipio && Number(maybeMunicipio) > 0) {
+      payload.idMunicipio = Number(maybeMunicipio);
     }
-    
+
     if (values?.claseId) {
       payload.idClase = Number(values.claseId);
     }
+
     if (values?.idRegional) {
       payload.idRegional = Number(values.idRegional);
     }
-    if (values?.cantidadInvitados) {
+
+    if (values?.cantidadInvitados !== undefined) {
       payload.cantidadInvPermitidos = Number(values.cantidadInvitados);
     }
 

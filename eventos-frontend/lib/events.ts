@@ -29,6 +29,8 @@ const mapEventoToEvent = (evento: any): Event => {
   const area = evento?.clase?.area;
   const municipio = evento?.municipio;
   const departamento = municipio?.departamento;
+  const tipoRaw = (evento?.tipoEvento ?? evento?.TIPO_EVENTO ?? '').toString().toLowerCase();
+  const tipoEvento = tipoRaw === 'clase' || tipoRaw === 'evento' ? (tipoRaw as 'clase' | 'evento') : undefined;
   
   // Construir URL completa de imagen si existe
   let imageUrl = 'https://images.unsplash.com/photo-1739285452629-2672b13fa42d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080';
@@ -56,9 +58,11 @@ const mapEventoToEvent = (evento: any): Event => {
     category: area?.nombres ?? area?.NOMBRE_AREA ?? 'Sin área',
     image: imageUrl,
     isIntermediate: false,
+    tipoEvento,
     cuposDisponibles: evento?.cuposDisponibles ?? 0,
     cuposTotales: evento?.cuposTotales ?? 0,
     cantidadInvPermitidos: evento?.cantidadInvPermitidos ?? 0,
+    estado: (evento?.estado ?? evento?.ESTADO ?? '').toString().toLowerCase() || undefined,
   };
 };
 

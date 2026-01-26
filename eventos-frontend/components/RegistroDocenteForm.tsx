@@ -96,6 +96,43 @@ export function RegistroDocenteForm({ event, onBack, onSuccess }: RegistroDocent
     setInfo('Ingresa tu número de identidad para buscar tu información');
   }, []);
 
+  // Si el docente ya está logueado, saltar el paso de DNI y precargar datos
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const me = await docenteAuth.me();
+        if (!active || !me?.nIdentificacion) return;
+        setDniInput(me.nIdentificacion);
+        setInfo('Verifica y completa tu información para registrarte');
+        // Buscar docente por DNI y preparar formulario como en handleBuscar
+        const resultado: any = await registroServices.buscarDocentePorDni(me.nIdentificacion);
+        if (!active || !resultado) return;
+        setDocente(resultado as Docente);
+        setFormData(resultado as Docente);
+        // Cargar listas dependientes
+        if (resultado.idDepartamento) {
+          await loadMunicipios(resultado.idDepartamento);
+        }
+        if (resultado.idMunicipioResidencia) {
+          await loadAldeas(resultado.idMunicipioResidencia);
+        }
+        // Precargar discapacidades
+        try {
+          const discapacidadesDocente = await registroServices.obtenerDiscapacidadesDocente(resultado.id);
+          if (discapacidadesDocente && discapacidadesDocente.length > 0) {
+            setTieneDiscapacidad(true);
+            setIdsDiscapacidadesSeleccionadas(discapacidadesDocente.map((d: any) => d.idDiscapacidad));
+          }
+        } catch {}
+        setStep('editar');
+      } catch {
+        // Si falla, se mantiene flujo normal (pedir DNI)
+      }
+    })();
+    return () => { active = false; };
+  }, []);
+
   // Cuando cambia departamento, cargar municipios
   useEffect(() => {
     if (!formData.idDepartamento) {
@@ -939,12 +976,7 @@ export function RegistroDocenteForm({ event, onBack, onSuccess }: RegistroDocent
                 {/* Botones */}
                 <div className="flex gap-4 pt-6 border-t">
                   <button
-                    onClick={() => {
-                      setStep('buscar');
-                      setDocente(null);
-                      setFormData({});
-                      setDniInput('');
-                    }}
+                    onClick={onBack}
                     className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-semibold"
                   >
                     Cancelar
