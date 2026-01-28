@@ -2,33 +2,20 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { Header } from '../../components/Header';
 import { RegistroDocenteForm } from '../../components/RegistroDocenteForm';
-import { getAllEvents } from '../../lib/events';
+import { useAllEvents } from '../../lib/events';
 import type { Event } from '../../types/event';
 
 export default function RegistrationPage() {
   const router = useRouter();
   const { id } = router.query;
   const [event, setEvent] = useState<Event | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { events, isLoading } = useAllEvents();
 
   useEffect(() => {
-    if (!id) return;
-
-    async function loadEvent() {
-      try {
-        const events = await getAllEvents();
-        const found = events.find(e => e.id === String(id));
-        setEvent(found || null);
-      } catch (error) {
-        console.error('Error al cargar evento:', error);
-        setEvent(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadEvent();
-  }, [id]);
+    if (!id || !events.length) return;
+    const found = events.find(e => e.id === String(id));
+    setEvent(found || null);
+  }, [id, events]);
 
   const handleNavigate = (page: string) => {
     const map: Record<string, string> = {
@@ -41,7 +28,7 @@ export default function RegistrationPage() {
     router.push(map[page] || '/');
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <main className="min-h-screen">
         <Header currentPage="events" onNavigate={handleNavigate} />

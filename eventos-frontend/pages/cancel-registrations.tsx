@@ -2,43 +2,45 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Header } from '../components/Header';
 import { CancelRegistrations } from '../components/CancelRegistrationsPage';
-import { getAllEvents } from '../lib/events';
+import { useAllEvents } from '../lib/events';
 import { registroServices } from '../lib/registro/services';
 import { docenteAuth } from '../lib/authDocente';
 import type { Registration } from '../types/teacher';
-import type { Event } from '../types/event';
 
 export default function CancelRegistrationsPage() {
   const router = useRouter();
+
   const [searchQuery, setSearchQuery] = useState<string>(() => {
     const q = router.query.q;
     return typeof q === 'string' ? q : '';
   });
+
   const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { events, isLoading } = useAllEvents();
 
   useEffect(() => {
     async function loadData() {
       try {
-        const eventsData = await getAllEvents();
-        setEvents(eventsData);
         const me = await docenteAuth.me();
         const mis = await registroServices.listarMisInscripciones();
-        const activos = (mis || []).filter((r: any) => (r?.estado || '').toLowerCase() !== 'cancelado');
+
+        const activos = (mis || []).filter(
+          (r: any) => (r?.estado || '').toLowerCase() !== 'cancelado'
+        );
+
         const mapped: Registration[] = activos.map((r: any) => ({
           id: String(r.idRegistro),
           eventId: String(r.evento?.id ?? ''),
           teacherDni: me?.nIdentificacion || '',
           registeredAt: r.fechaRegistro || new Date().toISOString(),
         }));
+
         setRegistrations(mapped);
       } catch (error) {
         console.error('Error al cargar datos:', error);
-      } finally {
-        setLoading(false);
       }
     }
+
     loadData();
   }, []);
 
@@ -49,30 +51,39 @@ export default function CancelRegistrationsPage() {
       'my-registrations': '/my-registrations',
       'cancel-registrations': '/cancel-registrations',
       'cancellation-history': '/cancellation-history',
-      'carnetizacion': '/carnetizacion',
+      carnetizacion: '/carnetizacion',
     };
+
     router.push(map[page] || '/');
   };
 
   const onSearch = (q: string) => {
     setSearchQuery(q);
-    const url = { pathname: router.pathname, query: q ? { q } : {} };
-    router.replace(url, undefined, { shallow: true });
+    router.replace(
+      { pathname: router.pathname, query: q ? { q } : {} },
+      undefined,
+      { shallow: true }
+    );
   };
 
   const onCancel = async (eventId: string) => {
     try {
       await registroServices.cancelarInscripcion({ idEvento: Number(eventId) });
-      // Recargar lista de inscripciones activas
+
       const me = await docenteAuth.me();
       const mis = await registroServices.listarMisInscripciones();
-      const activos = (mis || []).filter((r: any) => (r?.estado || '').toLowerCase() !== 'cancelado');
+
+      const activos = (mis || []).filter(
+        (r: any) => (r?.estado || '').toLowerCase() !== 'cancelado'
+      );
+
       const mapped: Registration[] = activos.map((r: any) => ({
         id: String(r.idRegistro),
         eventId: String(r.evento?.id ?? ''),
         teacherDni: me?.nIdentificacion || '',
         registeredAt: r.fechaRegistro || new Date().toISOString(),
       }));
+
       setRegistrations(mapped);
     } catch (e) {
       console.error('Error al cancelar inscripción:', e);
@@ -80,24 +91,30 @@ export default function CancelRegistrationsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <main className="min-h-screen">
-        <Header currentPage="cancel-registrations" onNavigate={handleNavigate} onSearch={onSearch} searchQuery={searchQuery} />
+  return (
+    <main className="min-h-screen">
+      <Header
+        currentPage="cancel-registrations"
+        onNavigate={handleNavigate}
+        onSearch={onSearch}
+        searchQuery={searchQuery}
+      />
+
+      {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="w-16 h-16 border-4 border-[#0d7d6e] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-16 h-16 border-4 border-[#0d7d6e] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Cargando registros...</p>
           </div>
         </div>
-      </main>
-    );
-  }
-
-  return (
-    <main className="min-h-screen">
-      <Header currentPage="cancel-registrations" onNavigate={handleNavigate} onSearch={onSearch} searchQuery={searchQuery} />
-      <CancelRegistrations events={events} registrations={registrations} onCancel={onCancel} searchQuery={searchQuery} />
+      ) : (
+        <CancelRegistrations
+          events={events}
+          registrations={registrations}
+          onCancel={onCancel}
+          searchQuery={searchQuery}
+        />
+      )}
     </main>
   );
 }

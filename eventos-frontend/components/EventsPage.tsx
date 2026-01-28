@@ -6,7 +6,7 @@ import { HeroBanner } from './HeroBanner';
 import { EventModal } from './EventModal';
 import type { Event } from '../types/event';
 import type { Registration } from '../types/teacher';
-import { getAllEvents } from '../lib/events';
+import { useAllEvents } from '../lib/events';
 
 interface EventsProps {
   events?: Event[];
@@ -22,28 +22,8 @@ export function Events({ events: eventsProp, registrations, estadosPorEvento = {
   const [selectedCategory, setSelectedCategory] = useState<string>('Todas las áreas');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
-  const [events, setEvents] = useState<Event[]>(eventsProp ?? []);
-  const [loading, setLoading] = useState(!eventsProp);
-
-  useEffect(() => {
-    if (!eventsProp) {
-      async function loadEvents() {
-        setLoading(true);
-        try {
-          const loadedEvents = await getAllEvents();
-          setEvents(loadedEvents);
-        } catch (error) {
-          console.error('Error al cargar eventos:', error);
-          setEvents([]);
-        } finally {
-          setLoading(false);
-        }
-      }
-      loadEvents();
-    } else {
-      setEvents(eventsProp);
-    }
-  }, [eventsProp]);
+  // Usar SWR para cachear eventos
+  const { events, isLoading } = useAllEvents();
 
   // Filtrar eventos por categoría y búsqueda global
   const filteredEvents = events.filter((event) => {
@@ -52,7 +32,7 @@ export function Events({ events: eventsProp, registrations, estadosPorEvento = {
     const isCanceled = (event.estado || '').toLowerCase() === 'cancelado';
     if (selectedCategory !== 'Todas las áreas' && isCanceled) return false;
     const matchesCategory = selectedCategory === 'Todas las áreas' || event.category === selectedCategory;
-    const matchesSearch = !searchQuery || 
+    const matchesSearch = !searchQuery ||
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.category.toLowerCase().includes(searchQuery.toLowerCase());
@@ -66,7 +46,7 @@ export function Events({ events: eventsProp, registrations, estadosPorEvento = {
   return (
     <>
       <div className="flex min-h-[calc(100vh-180px)]">
-        <Sidebar 
+        <Sidebar
           selectedCategory={selectedCategory}
           onSelectCategory={(category) => {
             setSelectedCategory(category);
@@ -75,7 +55,7 @@ export function Events({ events: eventsProp, registrations, estadosPorEvento = {
           showMobile={showMobileSidebar}
           onClose={() => setShowMobileSidebar(false)}
         />
-        
+
         {/* Main content con margin-left para compensar el sidebar fijo en desktop */}
         <main className="flex-1 p-4 md:p-6 md:ml-64">
           {/* Mobile filter button */}
@@ -96,7 +76,7 @@ export function Events({ events: eventsProp, registrations, estadosPorEvento = {
 
           {/* Events Grid */}
           <div className="max-w-[1200px] mx-auto">
-            {loading ? (
+            {isLoading ? (
               <div className="flex justify-center items-center py-12">
                 <div className="text-center">
                   <div className="w-16 h-16 border-4 border-[#0d7d6e] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -127,7 +107,7 @@ export function Events({ events: eventsProp, registrations, estadosPorEvento = {
                     estado={estadosPorEvento[event.id] || event.estado}
                     onMoreInfo={() => setSelectedEvent(event)}
                     onRegister={() => onRegisterClick(event)}
-                    onCancel={() => {}}
+                    onCancel={() => { }}
                   />
                 ))}
               </div>
@@ -146,7 +126,7 @@ export function Events({ events: eventsProp, registrations, estadosPorEvento = {
             onRegisterClick(selectedEvent);
             setSelectedEvent(null);
           }}
-          onCancel={() => {}}
+          onCancel={() => { }}
           onMoreInfo={() => {
             onMoreInfo(selectedEvent);
             setSelectedEvent(null);

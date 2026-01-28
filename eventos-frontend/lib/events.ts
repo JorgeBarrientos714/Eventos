@@ -3,6 +3,8 @@
 // Relacionados: pages/events.tsx, components/EventCard.tsx, Home.tsx
 // Rutas/Endpoints usados: GET /eventos/evento/todos, GET /eventos/areas
 // Notas: NO hay datos hardcodeados. Todo viene de la BD.
+
+import useSWR from 'swr';
 import type { Event } from '../types/event';
 import { formatCategoryDisplay } from './utils';
 
@@ -14,6 +16,8 @@ if (!process.env.NEXT_PUBLIC_API_URL) {
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const formatDate = (dateStr?: string | Date): string => {
   if (!dateStr) return '';
@@ -75,6 +79,7 @@ const mapEventoToEvent = (evento: any): Event => {
 /**
  * Obtiene TODOS los eventos desde la BD
  */
+
 export async function getAllEvents(): Promise<Event[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/eventos/evento/todos`);
@@ -88,6 +93,19 @@ export async function getAllEvents(): Promise<Event[]> {
     console.error('Error al obtener eventos:', error);
     return [];
   }
+}
+
+// Nuevo hook para cachear eventos
+export function useAllEvents() {
+  const { data, error, isLoading } = useSWR(`${API_BASE_URL}/eventos/evento/todos`, fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000, // 1 minuto
+  });
+  return {
+    events: Array.isArray(data) ? data.map(mapEventoToEvent) : [],
+    isLoading: !data && !error,
+    isError: !!error,
+  };
 }
 
 /**
@@ -111,6 +129,7 @@ export async function getEventsByArea(areaName: string): Promise<Event[]> {
 /**
  * Obtiene TODAS las áreas desde la BD
  */
+
 export async function getAreas(): Promise<Array<{ id: string; nombre: string }>> {
   try {
     const response = await fetch(`${API_BASE_URL}/eventos/areas`);
@@ -127,6 +146,24 @@ export async function getAreas(): Promise<Array<{ id: string; nombre: string }>>
     console.error('Error al obtener áreas:', error);
     return [];
   }
+}
+
+// Nuevo hook para cachear áreas
+export function useAreas() {
+  const { data, error, isLoading } = useSWR(`${API_BASE_URL}/eventos/areas`, fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+  });
+  return {
+    areas: Array.isArray(data)
+      ? data.map((a: any) => ({
+        id: String(a.id ?? a.ID_AREA),
+        nombre: a.nombres ?? a.NOMBRE_AREA ?? 'Área',
+      }))
+      : [],
+    isLoading: !data && !error,
+    isError: !!error,
+  };
 }
 
 // Datos de respaldo SOLO si la BD falla completamente
