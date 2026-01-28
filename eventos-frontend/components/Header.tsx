@@ -77,7 +77,7 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50 overflow-x-clip">
-      <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-4">
+      <div className=" mx-auto px-4 md:px-6 py-4">
         <div className="flex flex-nowrap items-center justify-between gap-3 md:gap-4 min-w-0">
           {/* Logo */}
           <button
