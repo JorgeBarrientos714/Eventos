@@ -134,27 +134,31 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
             >
               Eventos
             </button>
-            <button
-              onClick={() => handleNavClick('my-registrations')}
-              className={`hover:text-[#0d7d6e] transition-colors ${currentPage === 'my-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
-                }`}
-            >
-              Mis inscripciones
-            </button>
-            <button
-              onClick={() => handleNavClick('cancel-registrations')}
-              className={`hover:text-[#0d7d6e] transition-colors ${currentPage === 'cancel-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
-                }`}
-            >
-              Cancelar inscripciones
-            </button>
-            <button
-              onClick={() => handleNavClick('cancellation-history')}
-              className={`hover:text-[#0d7d6e] transition-colors ${currentPage === 'cancellation-history' ? 'text-[#0d7d6e]' : 'text-gray-700'
-                }`}
-            >
-              Historial de cancelaciones
-            </button>
+            {docenteNombre && (
+              <>
+                <button
+                  onClick={() => handleNavClick('my-registrations')}
+                  className={`hover:text-[#0d7d6e] transition-colors ${currentPage === 'my-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                    }`}
+                >
+                  Mis inscripciones
+                </button>
+                <button
+                  onClick={() => handleNavClick('cancel-registrations')}
+                  className={`hover:text-[#0d7d6e] transition-colors ${currentPage === 'cancel-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                    }`}
+                >
+                  Cancelar inscripciones
+                </button>
+                <button
+                  onClick={() => handleNavClick('cancellation-history')}
+                  className={`hover:text-[#0d7d6e] transition-colors ${currentPage === 'cancellation-history' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                    }`}
+                >
+                  Historial de cancelaciones
+                </button>
+              </>
+            )}
             <div className="relative" ref={modulesRef}>
               <button
                 onClick={() => setShowModulesMenu((v) => !v)}
@@ -283,27 +287,31 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
             >
               Eventos
             </button>
-            <button
-              onClick={() => handleNavClick('my-registrations')}
-              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${currentPage === 'my-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
-                }`}
-            >
-              Mis inscripciones
-            </button>
-            <button
-              onClick={() => handleNavClick('cancel-registrations')}
-              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${currentPage === 'cancel-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
-                }`}
-            >
-              Cancelar inscripciones
-            </button>
-            <button
-              onClick={() => handleNavClick('cancellation-history')}
-              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${currentPage === 'cancellation-history' ? 'text-[#0d7d6e]' : 'text-gray-700'
-                }`}
-            >
-              Historial de cancelaciones
-            </button>
+            {docenteNombre && (
+              <>
+                <button
+                  onClick={() => handleNavClick('my-registrations')}
+                  className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${currentPage === 'my-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                    }`}
+                >
+                  Mis inscripciones
+                </button>
+                <button
+                  onClick={() => handleNavClick('cancel-registrations')}
+                  className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${currentPage === 'cancel-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                    }`}
+                >
+                  Cancelar inscripciones
+                </button>
+                <button
+                  onClick={() => handleNavClick('cancellation-history')}
+                  className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${currentPage === 'cancellation-history' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                    }`}
+                >
+                  Historial de cancelaciones
+                </button>
+              </>
+            )}
             <div className="space-y-2">
               <div className="flex items-center gap-1 text-gray-700">
                 Módulos

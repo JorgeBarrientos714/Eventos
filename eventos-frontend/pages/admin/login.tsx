@@ -10,6 +10,7 @@ import backgroundImage from '../../assets/Edificio Color Blanco.jpg';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { adminServices } from '../../lib/admin/services';
 import { AdminArea } from '../../lib/admin/types';
+import Image from 'next/image';
 
 type AuthMode = 'login' | 'register' | 'recover';
 
@@ -408,16 +409,54 @@ export default function AdminLoginPage() {
         : 'Genera un token de recuperación y actualiza tu contraseña.';
 
   return (
-    <div className="events-shell">
-      <div
-        className="events-bg-fixed"
-        style={{
-          backgroundImage: `linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.96) 75%), url(${backgroundUrl})`,
-        }}
-      />
-      <div className="events-content flex min-h-screen flex-col items-center justify-center px-4 py-16">
-        <div className="w-full max-w-md rounded-3xl bg-white/95 p-10 shadow-xl ring-1 ring-gray-100/60 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-3 text-center">
+    <div className="min-h-screen flex flex-col md:flex-row">
+      {/* Columna izquierda: Branding */}
+      <div className="hidden md:flex flex-col justify-center items-center w-1/2 bg-gradient-to-br from-[#0d7d6e] to-[#0ead93] relative">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src={backgroundUrl}
+            alt="INPREMA edificio"
+            fill
+            style={{ objectFit: 'cover', opacity: 0.25 }}
+            priority
+          />
+        </div>
+        <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8">
+          <div className="rounded-2xl px-10 py-12 flex flex-col items-center w-full max-w-xs">
+            <span className="text-4xl font-bold text-white mb-2 tracking-widest">INPREMA</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Columna derecha: Formulario */}
+      <div className="flex flex-1 flex-col justify-center items-center bg-white min-h-screen px-4 py-8">
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 md:p-10">
+          {/* Tabs */}
+          <div className="flex justify-center mb-8">
+            <button
+              type="button"
+              className="px-6 py-2 text-lg font-semibold border-b-2 focus:outline-none transition-all"
+              style={{
+                color: '#0d7d6e',
+                borderColor: '#0d7d6e',
+                borderBottomWidth: 2,
+                background: 'none',
+                opacity: 0.95,
+              }}
+              disabled
+            >
+              Administrador
+            </button>
+            <button
+              type="button"
+              className="px-6 py-2 text-lg font-semibold text-gray-400 border-b-2 border-transparent focus:outline-none transition-all"
+              style={{ background: 'none', opacity: 0.7 }}
+              disabled
+            >
+              Interno
+            </button>
+          </div>
+          <div className="flex flex-col items-center gap-3 text-center mb-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0d7d6e]/10 text-[#0d7d6e]">
               <Lock className="h-6 w-6" />
             </div>
@@ -426,10 +465,8 @@ export default function AdminLoginPage() {
               <p className="mt-2 text-sm text-gray-500">{subtitle}</p>
             </div>
           </div>
-
           {error && <p className="mt-6 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600">{error}</p>}
           {success && <p className="mt-6 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{success}</p>}
-
           {renderContent()}
         </div>
       </div>
