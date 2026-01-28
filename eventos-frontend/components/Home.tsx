@@ -458,7 +458,7 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
             className="relative z-10"
             style={{ padding: '2rem 3rem 2rem 14rem' }}
           >
-            <NetflixCarousel>
+            <NetflixCarousel itemsPerView={{ mobile: 1, tablet: 2, desktop: 2 }}>
               {filteredClasses.map((classItem) => (
                 <div
                   key={classItem.id}

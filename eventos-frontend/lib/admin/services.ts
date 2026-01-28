@@ -52,6 +52,15 @@ const mapEvento = (evento: any): AdminEvent => {
   const tipoRaw = (evento?.tipoEvento ?? evento?.TIPO_EVENTO ?? '').toString().toLowerCase();
   const tipoEvento = tipoRaw === 'clase' || tipoRaw === 'evento' ? (tipoRaw as 'clase' | 'evento') : undefined;
   const estadoRaw = (evento?.estado ?? evento?.ESTADO ?? 'activo').toString().toLowerCase();
+  
+  // Obtener imagen desde varios campos posibles
+  let imagen = evento?.imagenUrl ?? evento?.imagen ?? evento?.IMAGEN ?? evento?.imagenBlob ?? undefined;
+  
+  // Si la imagen es una URL relativa, construir URL completa
+  if (imagen && imagen.startsWith('/')) {
+    imagen = `${API_BASE_URL}${imagen}`;
+  }
+  
   return {
     id: String(evento?.id ?? evento?.ID_EVENTO ?? Date.now()),
     nombre: evento?.nombreEvento ?? evento?.NOMBRE_EVENTO ?? 'Evento',
@@ -71,7 +80,7 @@ const mapEvento = (evento: any): AdminEvent => {
     horaFin: evento?.horaFin ?? '',
     cuposDisponibles: Number(evento?.cuposDisponibles ?? evento?.CUPOS_DISPONIBLES ?? 0),
     cuposTotales: Number(evento?.cuposTotales ?? evento?.CUPOS_TOTALES ?? 0),
-    imagen: evento?.imagenUrl ?? undefined,
+    imagen,
     estado: estadoRaw as AdminEvent['estado'],
     claseId: evento?.idClase ? String(evento.idClase) : (evento?.ID_CLASE ? String(evento.ID_CLASE) : undefined),
     departamentoId: departamento?.id ? String(departamento.id) : (departamento?.ID_DEPARTAMENTO ? String(departamento.ID_DEPARTAMENTO) : undefined),

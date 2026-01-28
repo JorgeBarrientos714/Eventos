@@ -1,27 +1,34 @@
 // Módulo: frontend-admin
 // Función: Layout base para vistas admin (navegación, shell y logout)
-// Relacionados: AdminGuard, AdminEventsDashboard, pages/admin/*
+// Relacionados: AdminGuard, AdminEventsDashboard, pages/admin/*, AdminHeader
 // Rutas/Endpoints usados: ninguno directo (usa logout del contexto)
-// Notas: No se renombra para conservar imports actuales.
-import Link from 'next/link';
+// Notas: Ahora usa AdminHeader para navegación consistente con el portal público
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import backgroundImage from '../../assets/Edificio Color Blanco.jpg';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+import { AdminHeader } from './AdminHeader';
 
 interface AdminLayoutProps {
   title?: string;
   description?: string;
   children: React.ReactNode;
+  showHeader?: boolean; // Permite ocultar header si se necesita
 }
 
-export function AdminLayout({ title, description, children }: AdminLayoutProps) {
+export function AdminLayout({ title, description, children, showHeader = true }: AdminLayoutProps) {
   const router = useRouter();
-  const { logout, session } = useAdminAuth();
+  const { session } = useAdminAuth();
   const backgroundUrl = 'src' in backgroundImage ? backgroundImage.src : backgroundImage;
+  const [currentPage, setCurrentPage] = useState('eventos');
 
-  const handleLogout = async () => {
-    await logout();
-    router.replace('/admin/login');
+  const handleNavigate = (page: string) => {
+    setCurrentPage(page);
+    if (page === 'home') {
+      router.push('/admin/home');
+    } else if (page === 'eventos') {
+      router.push('/admin/eventos');
+    }
   };
 
   return (
@@ -33,28 +40,9 @@ export function AdminLayout({ title, description, children }: AdminLayoutProps) 
         }}
       />
       <div className="events-content">
-        <header className="border-b border-gray-100 bg-white/80 backdrop-blur-sm">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4">
-            <div className="flex flex-col">
-              <span className="text-xs uppercase tracking-wide text-[#0d7d6e]">Panel administrativo</span>
-              <h1 className="text-lg font-semibold text-gray-800">INPREMA</h1>
-            </div>
-            <nav className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm font-medium text-gray-600">
-              <Link href="/admin/eventos" className={router.pathname.startsWith('/admin/eventos') ? 'text-[#0d7d6e]' : 'hover:text-[#0d7d6e]'}>
-                Gestión de eventos
-              </Link>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="rounded-full border border-[#0d7d6e]/20 px-4 py-1.5 text-sm text-[#0d7d6e] transition hover:bg-[#0d7d6e] hover:text-white"
-              >
-                Cerrar sesión
-              </button>
-            </nav>
-          </div>
-        </header>
+        {showHeader && <AdminHeader currentPage={currentPage} onNavigate={handleNavigate} />}
 
-        <main className="mx-auto w-full max-w-6xl px-4 py-10">
+        <main className="mx-auto w-full max-w-[1200px] px-4 py-10">
           <div className="mb-8 space-y-2">
             {title && <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>}
             {description && <p className="text-sm text-gray-500">{description}</p>}

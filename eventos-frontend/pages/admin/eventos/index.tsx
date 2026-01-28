@@ -1,15 +1,10 @@
 // Módulo: frontend-admin
-// Función: Página del tablero de eventos admin con guardia de autenticación
-// Relacionados: AdminEventsDashboard, AdminGuard
+// Función: Página del tablero de eventos admin con nuevo diseño tipo EventsPage
+// Relacionados: AdminEventsPage, AdminGuard, AdminEventCard
 // Rutas/Endpoints usados: delega en componentes/servicios
-// Notas: No se renombra para preservar la ruta Next.js.
-import { AdminEventsDashboard } from '../../../components/admin/AdminEventsDashboard';
-import { AdminGuard } from '../../../components/admin/AdminGuard';
+// Notas: Usa diseño de EventsPage con funcionalidades admin
+import { AdminEventsPage } from '../../../components/admin/AdminEventsPage';
 
 export default function AdminEventosPage() {
-  return (
-    <AdminGuard>
-      <AdminEventsDashboard />
-    </AdminGuard>
-  );
+  return <AdminEventsPage />;
 }

@@ -4,6 +4,7 @@
 // Rutas/Endpoints usados: delega en adminServices (eventos/areas/evento/area)
 // Notas: No se renombra para mantener imports existentes.
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
 import { Plus, Users, ClipboardList, Edit, FileBarChart2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { adminServices } from '../../lib/admin/services';
@@ -34,6 +35,8 @@ interface RegisterState {
 }
 
 export function AdminEventsDashboard() {
+  const router = useRouter();
+  const { filter } = router.query; // Capturar filtro de eventos/clases
   const [loading, setLoading] = useState(true);
   const [areas, setAreas] = useState<AdminArea[]>([]);
   const [departamentos, setDepartamentos] = useState<string[]>([]);
@@ -44,6 +47,21 @@ export function AdminEventsDashboard() {
   type ViewState = ActiveViewState | FormViewState | ReportsViewState;
   const [view, setView] = useState<ViewState>({ type: 'list' });
   const [registerState, setRegisterState] = useState<RegisterState>({ isOpen: false, evento: null });
+
+  // Aplicar filtro a los eventos
+  const eventosFiltrados = useMemo(() => {
+    if (!filter || filter === 'all') return eventos;
+    
+    return eventos.filter(evento => {
+      const tipoEvento = (evento.tipoEvento || '').toLowerCase();
+      if (filter === 'eventos') {
+        return tipoEvento !== 'clase';
+      } else if (filter === 'clases') {
+        return tipoEvento === 'clase';
+      }
+      return true;
+    });
+  }, [eventos, filter]);
 
   useEffect(() => {
     let isMounted = true;
@@ -176,11 +194,11 @@ export function AdminEventsDashboard() {
   );
 
   const eventosAgrupadosPorRegional = useMemo(() => {
-    return eventos.reduce<Record<string, AdminEvent[]>>((acc, evento) => {
+    return eventosFiltrados.reduce<Record<string, AdminEvent[]>>((acc, evento) => {
       acc[evento.regional] = acc[evento.regional] ? [...acc[evento.regional], evento] : [evento];
       return acc;
     }, {});
-  }, [eventos]);
+  }, [eventosFiltrados]);
 
   if (loading) {
     return (
@@ -234,10 +252,25 @@ export function AdminEventsDashboard() {
       description="Administra la programación, realiza inscripciones manuales y descarga reportes de asistencia."
     >
       <div className="flex flex-col gap-6">
+        {/* Mostrar filtro activo si existe */}
+        {filter && filter !== 'all' && (
+          <div className="bg-[#0d7d6e]/10 border border-[#0d7d6e]/20 rounded-lg px-4 py-2 flex items-center justify-between">
+            <p className="text-sm text-[#0d7d6e] font-medium">
+              Filtrando por: <span className="font-bold">{filter === 'eventos' ? 'Eventos' : 'Clases'}</span>
+            </p>
+            <button
+              onClick={() => router.push('/admin/eventos')}
+              className="text-sm text-[#0d7d6e] hover:underline"
+            >
+              Ver todos
+            </button>
+          </div>
+        )}
+
         <div className="grid gap-4 md:grid-cols-3">
           <article className="rounded-2xl border border-gray-100 bg-gradient-to-br from-[#0d7d6e] to-[#0ea68f] p-6 text-white shadow-sm">
-            <p className="text-sm text-white/80">Eventos activos</p>
-            <p className="mt-3 text-3xl font-semibold">{eventos.filter((evento) => evento.estado === 'activo').length}</p>
+            <p className="text-sm text-white/80">{filter === 'clases' ? 'Clases activas' : filter === 'eventos' ? 'Eventos activos' : 'Eventos activos'}</p>
+            <p className="mt-3 text-3xl font-semibold">{eventosFiltrados.filter((e) => e.estado === 'activo').length}</p>
             <p className="mt-3 flex items-center gap-2 text-sm text-white/70">
               <ClipboardList className="h-4 w-4" />
               Monitorea cupos y estados
@@ -266,7 +299,7 @@ export function AdminEventsDashboard() {
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={handleShowReports}
+              onClick={() => handleShowReports()}
               className="inline-flex items-center gap-2 rounded-full border border-[#0d7d6e] px-4 py-2 text-sm font-semibold text-[#0d7d6e] transition hover:bg-[#0d7d6e] hover:text-white"
             >
               <FileBarChart2 className="h-4 w-4" />
