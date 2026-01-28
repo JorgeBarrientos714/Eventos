@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getAreas } from '../lib/events';
+import { formatCategoryDisplay } from '../lib/utils';
 
 interface SidebarProps {
   selectedCategory: string;
@@ -37,13 +38,12 @@ export function Sidebar({ selectedCategory, onSelectCategory, showMobile, onClos
               <button
                 key={category}
                 onClick={() => onSelectCategory(category)}
-                className={`block w-full text-left px-3 py-2 rounded-lg transition-colors ${
-                  selectedCategory === category
-                    ? 'bg-[#0d7d6e]/90 text-white backdrop-blur-sm'
-                    : 'text-gray-700 hover:bg-white/60'
-                }`}
+                className={`block w-full text-left px-3 py-2 rounded-lg transition-colors ${selectedCategory === category
+                  ? 'bg-[#0d7d6e]/90 text-white backdrop-blur-sm'
+                  : 'text-gray-700 hover:bg-white/60'
+                  }`}
               >
-                {category}
+                {formatCategoryDisplay(category)}
               </button>
             ))}
           </nav>
@@ -55,11 +55,11 @@ export function Sidebar({ selectedCategory, onSelectCategory, showMobile, onClos
       {showMobile && (
         <>
           {/* Backdrop con blur */}
-          <div 
+          <div
             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 md:hidden"
             onClick={onClose}
           />
-          
+
           {/* Sidebar */}
           <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white/95 backdrop-blur-md z-50 md:hidden">
             <div className="p-4 border-b border-white/30 flex items-center justify-between">
@@ -74,13 +74,12 @@ export function Sidebar({ selectedCategory, onSelectCategory, showMobile, onClos
                   <button
                     key={category}
                     onClick={() => onSelectCategory(category)}
-                    className={`block w-full text-left px-3 py-2 rounded-lg transition-colors ${
-                      selectedCategory === category
-                        ? 'bg-[#0d7d6e]/90 text-white'
-                        : 'text-gray-700 hover:bg-white/80'
-                    }`}
+                    className={`block w-full text-left px-3 py-2 rounded-lg transition-colors ${selectedCategory === category
+                      ? 'bg-[#0d7d6e]/90 text-white'
+                      : 'text-gray-700 hover:bg-white/80'
+                      }`}
                   >
-                    {category}
+                    {formatCategoryDisplay(category)}
                   </button>
                 ))}
               </nav>

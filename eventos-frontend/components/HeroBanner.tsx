@@ -4,7 +4,7 @@
 // Rutas/Endpoints usados: ninguno (datos provistos por props)
 // Notas: No se renombra para conservar imports.
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
 import type { Event } from '../types/event';
 
 interface HeroBannerProps {
@@ -16,7 +16,7 @@ export function HeroBanner({ events }: HeroBannerProps) {
 
   useEffect(() => {
     if (!events || events.length === 0) return;
-    
+
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % events.length);
     }, 5000);
@@ -48,11 +48,17 @@ export function HeroBanner({ events }: HeroBannerProps) {
   return (
     <div className="relative w-full h-[200px] md:h-[300px] rounded-xl md:rounded-2xl overflow-hidden bg-gray-200 group">
       {/* Image */}
-      <img
-        src={currentEvent.image}
-        alt={currentEvent.title}
-        className="w-full h-full object-cover"
-      />
+      {currentEvent.image ? (
+        <img
+          src={currentEvent.image}
+          alt={currentEvent.title}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-gray-300">
+          <ImageOff className="w-16 h-16 text-gray-400" />
+        </div>
+      )}
 
       {/* Overlay gradient */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
@@ -72,7 +78,7 @@ export function HeroBanner({ events }: HeroBannerProps) {
       >
         <ChevronLeft className="w-4 h-4 md:w-6 md:h-6 text-gray-800" />
       </button>
-      
+
       <button
         onClick={goToNext}
         className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-1.5 md:p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
@@ -87,9 +93,8 @@ export function HeroBanner({ events }: HeroBannerProps) {
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-colors ${
-              index === currentIndex ? 'bg-white' : 'bg-white/50'
-            }`}
+            className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-colors ${index === currentIndex ? 'bg-white' : 'bg-white/50'
+              }`}
             aria-label={`Ir a diapositiva ${index + 1}`}
           />
         ))}

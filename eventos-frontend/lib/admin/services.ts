@@ -4,6 +4,7 @@
 // Rutas/Endpoints usados: /eventos/auth/login, /eventos/auth/register, /eventos/auth/recuperar, /eventos/auth/restablecer, /eventos/areas, /eventos/evento/area/:id
 // Notas: No se renombra para preservar imports existentes en todo el frontend.
 import { ADMIN_DEPARTAMENTOS, ADMIN_DOCENTES, ADMIN_EVENTOS, ADMIN_GRUPOS_ETNICOS, ADMIN_REGISTROS } from './mockData';
+import { formatCategoryDisplay } from '../utils';
 import {
   AdminDocente,
   AdminEvent,
@@ -19,9 +20,15 @@ import {
 } from './types';
 
 const STORAGE_KEY = 'portal-inprema-admin-session';
-const API_BASE_URL = typeof window !== 'undefined' 
-  ? process.env.NEXT_PUBLIC_API_URL ?? `http://${window.location.hostname}:3000`
-  : process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+
+if (!process.env.NEXT_PUBLIC_API_URL) {
+  throw new Error(
+    'La variable de entorno NEXT_PUBLIC_API_URL no está definida. ' +
+    'Por favor, configúrala en tu archivo .env.local'
+  );
+}
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const toISODate = (value?: string | Date | null): string => {
   if (!value) return '';
@@ -51,7 +58,7 @@ const mapEvento = (evento: any): AdminEvent => {
     descripcion: evento?.descripcion ?? '',
     regional: evento?.regional?.nombres ?? evento?.REGIONAL ?? 'N/D',
     areaId: area ? String(area.id ?? area.ID_AREA) : '',
-    areaNombre: area?.nombres ?? area?.NOMBRE_AREA ?? 'Sin área',
+    areaNombre: formatCategoryDisplay(area?.nombres ?? area?.NOMBRE_AREA ?? 'Sin área'),
     tipoEvento,
     terapiaOClase: tipoEvento === 'evento' ? 'terapia' : 'clase',
     diasSemana: splitDiasSemana(evento?.diasSemana ?? evento?.DIAS_SEMANA),
@@ -203,7 +210,7 @@ export const adminServices = {
 
     return data.map((area) => ({
       id: String(area.id ?? area.ID_AREA),
-      nombre: area.nombres ?? area.NOMBRE_AREA ?? 'Área',
+      nombre: formatCategoryDisplay(area.nombres ?? area.NOMBRE_AREA ?? 'Área'),
       imagen: undefined,
     }));
   },
@@ -253,7 +260,7 @@ export const adminServices = {
     const diasSemanaStr = Array.isArray(values?.diasSemana) ? values.diasSemana.join(',') : values?.diasSemana ?? '';
     const direccionFinal = [values?.aldeaNombre, values?.direccion].filter(Boolean).join(', ');
     const tipoEvento = (values?.tipoEvento ?? (values?.terapiaOClase === 'clase' ? 'CLASE' : 'EVENTO')).toString().toUpperCase();
-    
+
     const payload = {
       nombreEvento: values?.nombre ?? '',
       descripcion: values?.descripcion ?? '',
@@ -292,7 +299,7 @@ export const adminServices = {
     const diasSemanaStr = Array.isArray(values?.diasSemana) ? values.diasSemana.join(',') : values?.diasSemana ?? '';
     const direccionFinal = [values?.aldeaNombre, values?.direccion].filter(Boolean).join(', ');
     const tipoEvento = (values?.tipoEvento ?? (values?.terapiaOClase === 'clase' ? 'CLASE' : 'EVENTO')).toString().toUpperCase();
-    
+
     const payload: any = {
       nombreEvento: values?.nombre ?? '',
       descripcion: values?.descripcion ?? '',

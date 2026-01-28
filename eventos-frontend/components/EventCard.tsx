@@ -3,7 +3,7 @@
 // Relacionados: Home.tsx, NetflixCarousel.tsx, pages/events.tsx
 // Rutas/Endpoints usados: ninguno (datos por props)
 // Notas: No se renombra para conservar imports.
-import { Calendar, Clock, MapPin } from 'lucide-react';
+import { Calendar, Clock, MapPin, ImageOff } from 'lucide-react';
 import type { Event } from '../types/event';
 
 interface EventCardProps {
@@ -19,21 +19,26 @@ export function EventCard({ event, isRegistered, estado, onMoreInfo, onRegister,
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 ease-out hover:scale-105 h-full flex flex-col cursor-pointer">
       {/* Image */}
-      <div className="relative h-40 md:h-48 overflow-hidden">
-        <img
-          src={event.image}
-          alt={event.title}
-          className="w-full h-full object-cover"
-        />
+      <div className="relative h-40 md:h-48 overflow-hidden bg-gray-100">
+        {event.image ? (
+          <img
+            src={event.image}
+            alt={event.title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-200">
+            <ImageOff className="w-12 h-12 text-gray-400" />
+          </div>
+        )}
         {estado && (
           <div
-            className={`absolute top-2 right-2 px-3 py-1 rounded-full text-xs text-white font-semibold ${
-              estado === 'Inscrito'
+            className={`absolute top-2 right-2 px-3 py-1 rounded-full text-xs text-white font-semibold ${estado === 'Inscrito'
                 ? 'bg-green-600'
                 : estado === 'Cancelado'
-                ? 'bg-red-600'
-                : 'bg-gray-600'
-            }`}
+                  ? 'bg-red-600'
+                  : 'bg-gray-600'
+              }`}
           >
             {estado}
           </div>

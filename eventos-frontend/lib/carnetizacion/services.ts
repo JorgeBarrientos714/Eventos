@@ -1,7 +1,12 @@
 // Servicios para carnetización (paso 1, paso 2, etc.)
-const API_BASE_URL = typeof window !== 'undefined'
-  ? process.env.NEXT_PUBLIC_API_URL ?? `http://${window.location.hostname}:3000`
-  : 'http://localhost:3000';
+if (!process.env.NEXT_PUBLIC_API_URL) {
+  throw new Error(
+    'La variable de entorno NEXT_PUBLIC_API_URL no está definida. ' +
+    'Por favor, configúrala en tu archivo .env.local'
+  );
+}
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const carnetizacionServices = {
   /**

@@ -7,6 +7,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Exo 2', 'sans-serif'],
+      },
       colors: {
         border: "var(--border)",
         ring: "var(--ring)",

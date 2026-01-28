@@ -4,24 +4,30 @@
 // Rutas/Endpoints usados: GET /eventos/evento/todos, GET /eventos/areas
 // Notas: NO hay datos hardcodeados. Todo viene de la BD.
 import type { Event } from '../types/event';
+import { formatCategoryDisplay } from './utils';
 
-const API_BASE_URL = typeof window !== 'undefined' 
-  ? process.env.NEXT_PUBLIC_API_URL ?? `http://${window.location.hostname}:3000`
-  : process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+if (!process.env.NEXT_PUBLIC_API_URL) {
+  throw new Error(
+    'La variable de entorno NEXT_PUBLIC_API_URL no está definida. ' +
+    'Por favor, configúrala en tu archivo .env.local'
+  );
+}
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const formatDate = (dateStr?: string | Date): string => {
   if (!dateStr) return '';
   const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
   if (Number.isNaN(date.getTime())) return '';
-  
+
   const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
   const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-  
+
   const diaSemana = dias[date.getDay()];
   const dia = date.getDate();
   const mes = meses[date.getMonth()];
   const anio = date.getFullYear();
-  
+
   return `${diaSemana} ${dia} de ${mes} del ${anio}`;
 };
 
@@ -31,9 +37,9 @@ const mapEventoToEvent = (evento: any): Event => {
   const departamento = municipio?.departamento;
   const tipoRaw = (evento?.tipoEvento ?? evento?.TIPO_EVENTO ?? '').toString().toLowerCase();
   const tipoEvento = tipoRaw === 'clase' || tipoRaw === 'evento' ? (tipoRaw as 'clase' | 'evento') : undefined;
-  
+
   // Construir URL completa de imagen si existe
-  let imageUrl = 'https://images.unsplash.com/photo-1739285452629-2672b13fa42d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080';
+  let imageUrl = '';
   if (evento?.imagenUrl) {
     // Si la URL ya es completa (http/https), usarla directamente
     if (evento.imagenUrl.startsWith('http')) {
@@ -43,7 +49,7 @@ const mapEventoToEvent = (evento: any): Event => {
       imageUrl = `${API_BASE_URL}${evento.imagenUrl}`;
     }
   }
-  
+
   return {
     id: String(evento?.id ?? evento?.ID_EVENTO ?? Date.now()),
     title: evento?.nombreEvento ?? evento?.NOMBRE_EVENTO ?? 'Evento',
@@ -55,7 +61,7 @@ const mapEventoToEvent = (evento: any): Event => {
       municipio?.nombres ?? municipio?.NOMBRES_MUNICIPIO ?? '',
       evento?.direccion ?? ''
     ].filter(Boolean).join(', ') || 'Sin ubicación',
-    category: area?.nombres ?? area?.NOMBRE_AREA ?? 'Sin área',
+    category: formatCategoryDisplay(area?.nombres ?? area?.NOMBRE_AREA ?? 'Sin área'),
     image: imageUrl,
     isIntermediate: false,
     tipoEvento,
@@ -91,7 +97,7 @@ export async function getEventsByArea(areaName: string): Promise<Event[]> {
   if (areaName === 'Todas las áreas') {
     return getAllEvents();
   }
-  
+
   try {
     // Filtrar eventos en el cliente por nombre de área
     const allEvents = await getAllEvents();

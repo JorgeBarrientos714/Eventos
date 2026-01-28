@@ -118,7 +118,7 @@ interface MiInscripcionItem {
   };
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export const registroServices = {
   /**
@@ -336,7 +336,7 @@ export const registroServices = {
     if (!tkn) throw new Error('No hay sesión de docente activa');
     const response = await fetch(`${API_BASE}/eventos/inscripcion/cancelar`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${tkn}`,
       },

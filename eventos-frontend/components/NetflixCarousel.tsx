@@ -80,7 +80,7 @@ export function NetflixCarousel({ children, itemsPerView = { mobile: 1, tablet: 
               key={index}
               className="flex-shrink-0"
               style={{
-                width: `calc(${100 / itemsToShow}% - ${((itemsToShow - 1) * (itemsToShow === 1 ? 16 : 24)) / itemsToShow}px)`,
+                //width: `calc(${100 / itemsToShow}% - ${((itemsToShow - 1) * (itemsToShow === 1 ? 16 : 24)) / itemsToShow}px)`,
               }}
             >
               {child}

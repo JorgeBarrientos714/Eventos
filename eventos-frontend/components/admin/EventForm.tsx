@@ -75,11 +75,11 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
   const [aldeasOpts, setAldeasOpts] = useState<OptionItem[]>([]);
   const [regionalesOpts, setRegionalesOpts] = useState<OptionItem[]>([]);
   const [estadosOpts, setEstadosOpts] = useState<OptionItem[]>([]);
-  
+
   // Control de invitados
   const [permitirInvitados, setPermitirInvitados] = useState(false);
   const [cantidadInvitados, setCantidadInvitados] = useState(0);
-  
+
   // Control de imagen
   const [imagenPreview, setImagenPreview] = useState<string>('');
   const [imagenBase64, setImagenBase64] = useState<string>('');
@@ -88,7 +88,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
     if (evento) {
       // Castear a AdminEventFormValues para acceder a propiedades extras
       const eventoForm = evento as AdminEventFormValues;
-      
+
       // Extraer aldeaNombre de dirección si existe (formato: "Aldea, dirección extra")
       let aldeaNombreExtraido = '';
       let direccionExtra = eventoForm.direccion;
@@ -97,7 +97,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
         aldeaNombreExtraido = partes[0].trim();
         direccionExtra = partes.slice(1).join(',').trim();
       }
-      
+
       // Asegurar valores definidos para evitar controlled/uncontrolled warnings
       const eventoData = {
         ...eventoForm,
@@ -110,17 +110,17 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
         direccion: direccionExtra,
       };
       setFormData((prev) => ({ ...prev, ...eventoData }));
-      
+
       // Cargar aldeas si hay municipio seleccionado
       if (eventoData.municipioId) {
         (async () => {
           try {
             const data = await adminServices.listAldeasByMunicipio(eventoData.municipioId);
             setAldeasOpts(data.map((a: any) => ({ id: String(a.id ?? a.ID_ALDEA), nombre: a.nombreAldea ?? a.NOMBRE_ALDEA ?? 'Aldea' })));
-            
+
             // Si hay aldeaNombre extraído, intentar encontrar su ID
             if (aldeaNombreExtraido) {
-              const aldea = data.find((a: any) => 
+              const aldea = data.find((a: any) =>
                 (a.nombreAldea ?? a.NOMBRE_ALDEA ?? '').toLowerCase() === aldeaNombreExtraido.toLowerCase()
               );
               if (aldea) {
@@ -132,7 +132,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
           }
         })();
       }
-      
+
       // Cargar estado de invitados si existe
       const invitadosPermitidos = (evento as any).cantidadInvitados ?? (evento as any).cantidadInvPermitidos ?? 0;
       if (invitadosPermitidos > 0) {
@@ -142,15 +142,19 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
         setPermitirInvitados(false);
         setCantidadInvitados(0);
       }
-      
+
       // Cargar preview de imagen si existe
       if (evento.imagen) {
         // Construir URL completa si es ruta relativa
-        const API_BASE_URL = typeof window !== 'undefined' 
-          ? process.env.NEXT_PUBLIC_API_URL ?? `http://${window.location.hostname}:3000`
-          : 'http://localhost:3000';
-        const imageUrl = evento.imagen.startsWith('http') 
-          ? evento.imagen 
+        if (!process.env.NEXT_PUBLIC_API_URL) {
+          throw new Error(
+            'La variable de entorno NEXT_PUBLIC_API_URL no está definida. ' +
+            'Por favor, configúrala en tu archivo .env.local'
+          );
+        }
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+        const imageUrl = evento.imagen.startsWith('http')
+          ? evento.imagen
           : `${API_BASE_URL}${evento.imagen}`;
         setImagenPreview(imageUrl);
         setImagenBase64('');
@@ -254,7 +258,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
     let active = true;
     async function loadMunicipios() {
       const depId = formData.departamentoId;
-      if (!depId) { 
+      if (!depId) {
         setMunicipiosOpts([]);
         setAldeasOpts([]);
         return;
@@ -276,7 +280,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
     let active = true;
     async function loadAldeas() {
       const munId = formData.municipioId;
-      if (!munId) { 
+      if (!munId) {
         setAldeasOpts([]);
         return;
       }
@@ -434,14 +438,14 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
         </div>
         <div className="space-y-2">
           <label className="text-sm font-semibold text-gray-600">Tipo de actividad</label>
-            <select
+          <select
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#0d7d6e] focus:outline-none focus:ring-2 focus:ring-[#0d7d6e]/20"
             value={formData.terapiaOClase}
             onChange={(e) => setFormData((prev) => ({ ...prev, terapiaOClase: e.target.value as 'terapia' | 'clase' }))}
-            >
+          >
             <option value="terapia">Evento</option>
             <option value="clase">Clase</option>
-            </select>
+          </select>
           <p className="text-xs text-gray-500">Se filtra en el frontend del docente.</p>
         </div>
       </div>
@@ -454,9 +458,8 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
             return (
               <label
                 key={dia}
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                  checked ? 'border-[#0d7d6e] bg-[#0d7d6e]/10 text-[#0d7d6e]' : 'border-gray-200 text-gray-600'
-                }`}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? 'border-[#0d7d6e] bg-[#0d7d6e]/10 text-[#0d7d6e]' : 'border-gray-200 text-gray-600'
+                  }`}
               >
                 <input
                   type="checkbox"
@@ -559,7 +562,7 @@ export function EventForm({ evento, areas, departamentos, onCancel, onSubmit }: 
         </div>
       </div>
 
-      
+
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-2">

@@ -5,6 +5,7 @@
 // Notas: No se renombra para conservar imports.
 import { NetflixCarousel } from './NetflixCarousel';
 import { EventModal } from './EventModal';
+import { ImageOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Event } from '../types/event';
 import { getAllEvents } from '../lib/events';
@@ -136,17 +137,16 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
                 className="
                   w-full h-full object-cover
 
-                  /* ───────── MOBILE: SUBIR IMAGEN ─────────
-                     ↓ Sube valores (%) para mover imagen hacia arriba
-                     ↓ Recomendado: 18%–26%
-                     ↓ MENOR número = más aire arriba */
-                  object-[50%_22%]
-                  sm:object-[60%_24%]
+                  /* ───────── MOBILE: MANOS SOBRESALIENTES ─────────
+                     ↓ Posición para mostrar cintura como corte inferior
+                     ↓ Manos sobresaliendo en la parte superior */
+                  object-[50%_55%]
+                  sm:object-[60%_56%]
 
-                  /* ───────── DESKTOP: CENTRADA ─────────
-                     ✅ Personas completas
-                     ✅ NO tocar si ya se ve bien */
-                  md:object-center
+                  /* ───────── DESKTOP: CINTURA COMO CORTE ─────────
+                     ✅ Manos sobresalientes arriba
+                     ✅ Cintura como punto de corte inferior */
+                  md:object-[50%_55%]
                 "
               />
             </div>
@@ -183,6 +183,7 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
               {/* ───────── GRADIENTE ─────────
                  Ajusta intensidad aquí si el texto
                  necesita más/menos contraste */}
+
               <div className="
                 absolute inset-0 pointer-events-none
                 bg-gradient-to-r
@@ -240,10 +241,9 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
       </section>
 
 
-
       {/* Sección de Identificación de Docente */}
       <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 pt-8 pb-6">
-        <div className="bg-gradient-to-r from-[#0d7d6e] to-[#0ead93] rounded-2xl p-6 md:p-8 shadow-lg">
+        <div className=" bg-[#0d7665] rounded-2xl p-6 md:p-8 shadow-lg">
           <h2 className="text-white text-2xl md:text-3xl mb-4" style={{ fontWeight: 700 }}>
             Identifícate como docente
           </h2>
@@ -320,106 +320,204 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
         </div>
       )}
 
-      {/* Próximos Eventos - Carrusel */}
-      <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-8">
-        <h2 className="text-3xl md:text-[54px] text-[#636363] mb-6" style={{ fontWeight: 700 }}>
+      {/* ================= PRÓXIMOS EVENTOS ================= */}
+      <section className="py-8">
+        {/* TÍTULO */}
+        <h2
+          className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8
+               text-3xl md:text-[54px] text-[#636363] mb-6 font-bold"
+        >
           Próximos eventos
         </h2>
 
-        <div className="relative bg-gradient-to-r from-[#0d7665] to-[#0ead93] rounded-[15px] p-6 md:p-8">
-          <NetflixCarousel>
-            {filteredUpcomingEvents.map((event) => (
-              <div
-                key={event.id}
-                className="bg-white rounded-[15px] shadow-lg overflow-hidden h-full transition-transform duration-300 ease-out hover:scale-105 hover:shadow-2xl cursor-pointer"
-              >
-                <div className="h-[256px] overflow-hidden">
-                  <img
-                    src={event.image}
-                    alt={event.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-4 text-center">
-                  <p className="text-[#0d7d6e] text-xs mb-1" style={{ fontWeight: 600 }}>
-                    {event.area}
-                  </p>
-                  <h3 className="text-[#636363] text-[18px] mb-3" style={{ fontWeight: 700 }}>
-                    {event.title}
-                  </h3>
-                  <button
-                    onClick={() => {
-                      const fullEvent = allEventsData.find(e => e.id === event.id);
-                      if (fullEvent) setSelectedEvent(fullEvent);
-                    }}
-                    className="border border-[#0e9c85] text-[#0e9c85] px-6 py-1.5 rounded-[27px] text-[16px] hover:bg-[#0e9c85] hover:text-white transition-colors"
-                    style={{ fontWeight: 700 }}
-                  >
-                    Más información
-                  </button>
-                </div>
-              </div>
-            ))}
-          </NetflixCarousel>
-        </div>
-      </div>
+        {/* CONTENEDOR GENERAL */}
+        <div className="relative w-full overflow-hidden">
+          {/* FONDO TRANSPARENTE | VERDE */}
+          <div
+            className="absolute inset-0 flex pointer-events-none"
+            style={{ margin: '0rem 0rem 0rem 0rem' }}
+          >
+            {/* IZQUIERDA TRANSPARENTE */}
+            <div className="w-1/2 bg-transparent" />
 
-      {/* Clases - Carrusel */}
-      <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-8">
-        <h2 className="text-3xl md:text-[54px] text-[#636363] mb-6" style={{ fontWeight: 700 }}>
+            {/* DERECHA VERDE CON DEGRADADO + BORDES */}
+            <div
+              className="
+    w-1/2
+    bg-[#0d7665]
+    rounded-l-[24px]
+  "
+            />
+          </div>
+
+          {/* CONTENIDO (CARRUSEL) */}
+          <div
+            className="relative z-10"
+            style={{
+              padding: '2rem 3rem 2rem 14rem', // 👈 EXACTO como pediste
+            }}
+          >
+            <NetflixCarousel>
+              {filteredUpcomingEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className="
+              bg-white rounded-[15px] shadow-lg overflow-hidden
+              min-w-[280px] max-w-[280px]
+              transition-transform duration-300
+              hover:scale-105 hover:shadow-2xl
+              cursor-pointer
+            "
+                >
+                  {/* IMAGEN */}
+                  <div className="h-[220px] overflow-hidden bg-gray-100">
+                    {event.image ? (
+                      <img
+                        src={event.image}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                        <ImageOff className="w-12 h-12 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* TEXTO */}
+                  <div className="p-4 text-center">
+                    <p className="text-[#0d7d6e] text-xs font-semibold mb-1">
+                      {event.area}
+                    </p>
+
+                    <h3 className="text-[#636363] text-[18px] font-bold mb-3">
+                      {event.title}
+                    </h3>
+
+                    <button
+                      onClick={() => {
+                        const fullEvent = allEventsData.find(
+                          (e) => String(e.id) === String(event.id)
+                        );
+                        if (fullEvent) setSelectedEvent(fullEvent);
+                      }}
+                      className="
+                  border border-[#0e9c85] text-[#0e9c85]
+                  px-6 py-1.5 rounded-[27px] text-[16px] font-bold
+                  hover:bg-[#0e9c85] hover:text-white
+                  transition-colors
+                "
+                    >
+                      Más información
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </NetflixCarousel>
+          </div>
+        </div>
+      </section>
+
+
+
+
+
+      {/* ================= CLASES ================= */}
+      <section className="py-8">
+        {/* TÍTULO */}
+        <h2
+          className="
+      max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8
+      text-3xl md:text-[54px] text-[#636363] mb-6 font-bold
+    "
+        >
           Clases
         </h2>
 
-        <div className="relative bg-gradient-to-r from-[#0d7665] to-[#0ead93] rounded-[15px] p-6 md:p-8 mb-8">
-          <NetflixCarousel>
-            {filteredClasses.map((classItem) => (
-              <div
-                key={classItem.id}
-                className="bg-white rounded-[15px] shadow-lg overflow-hidden h-full transition-transform duration-300 ease-out hover:scale-105 hover:shadow-2xl cursor-pointer"
-              >
-                <div className="h-[256px] overflow-hidden">
-                  <img
-                    src={classItem.image}
-                    alt={classItem.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-4 text-center">
-                  <p className="text-[#0d7d6e] text-xs mb-1" style={{ fontWeight: 600 }}>
-                    {classItem.area}
-                  </p>
-                  <h3 className="text-[#636363] text-[18px] mb-3" style={{ fontWeight: 700 }}>
-                    {classItem.title}
-                  </h3>
-                  <button
-                    onClick={() => {
-                      const fullEvent = allEventsData.find((e) => String(e.id) === String(classItem.id));
-                      if (fullEvent) setSelectedEvent(fullEvent);
-                    }}
-                    className="border border-[#0e9c85] text-[#0e9c85] px-6 py-1.5 rounded-[27px] text-[16px] hover:bg-[#0e9c85] hover:text-white transition-colors"
-                    style={{ fontWeight: 700 }}
-                  >
-                    Más información
-                  </button>
-                </div>
-              </div>
-            ))}
-          </NetflixCarousel>
-        </div>
+        {/* CONTENEDOR GENERAL */}
+        <div className="relative w-full overflow-hidden">
+          {/* FONDO TRANSPARENTE | VERDE */}
+          <div
+            className="absolute inset-0 flex pointer-events-none"
+          >
+            {/* IZQUIERDA TRANSPARENTE */}
+            <div className="w-1/2 bg-transparent" />
 
-        {/* Ver todos los eventos button */}
-        {onNavigate && (
-          <div className="flex justify-center">
-            <button
-              onClick={() => onNavigate('events')}
-              className="bg-[#0d7665] text-white px-12 py-3 rounded-[27px] text-[25px] shadow-md hover:bg-[#0a6356] transition-colors"
-              style={{ fontWeight: 700 }}
-            >
-              Ver todos los eventos
-            </button>
+            {/* DERECHA VERDE */}
+            <div
+              className="
+                w-1/2
+                bg-[#0d7665]
+                rounded-l-[24px]
+              "
+            />
           </div>
-        )}
-      </div>
+
+          {/* CONTENIDO (CARRUSEL) */}
+          <div
+            className="relative z-10"
+            style={{ padding: '2rem 3rem 2rem 14rem' }}
+          >
+            <NetflixCarousel>
+              {filteredClasses.map((classItem) => (
+                <div
+                  key={classItem.id}
+                  className="
+              bg-white rounded-[15px] shadow-lg overflow-hidden
+              min-w-[280px] max-w-[280px]
+              transition-transform duration-300
+              hover:scale-105 hover:shadow-2xl
+              cursor-pointer
+            "
+                >
+                  {/* IMAGEN */}
+                  <div className="h-[220px] overflow-hidden bg-gray-100">
+                    {classItem.image ? (
+                      <img
+                        src={classItem.image}
+                        alt={classItem.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                        <ImageOff className="w-12 h-12 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* TEXTO */}
+                  <div className="p-4 text-center">
+                    <p className="text-[#0d7d6e] text-xs font-semibold mb-1">
+                      {classItem.area}
+                    </p>
+
+                    <h3 className="text-[#636363] text-[18px] font-bold mb-3">
+                      {classItem.title}
+                    </h3>
+
+                    <button
+                      onClick={() => {
+                        const fullEvent = allEventsData.find(
+                          (e) => String(e.id) === String(classItem.id)
+                        );
+                        if (fullEvent) setSelectedEvent(fullEvent);
+                      }}
+                      className="
+                  border border-[#0e9c85] text-[#0e9c85]
+                  px-6 py-1.5 rounded-[27px] text-[16px] font-bold
+                  hover:bg-[#0e9c85] hover:text-white
+                  transition-colors
+                "
+                    >
+                      Más información
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </NetflixCarousel>
+          </div>
+        </div>
+      </section>
 
       {/* Avisos */}
       <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-8 pb-12">

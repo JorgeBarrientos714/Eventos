@@ -26,7 +26,15 @@ async function bootstrap() {
     },
   }));
 
-  const port = process.env.PORT || 3001;
+  const port = process.env.PORT;
+
+  if (!port) {
+    throw new Error(
+      'La variable de entorno PORT no está definida. ' +
+      'Por favor, configúrala en tu archivo .env'
+    );
+  }
+
   await app.listen(port);
   console.log(`🚀 Backend corriendo en http://localhost:${port}`);
 }

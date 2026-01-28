@@ -15,12 +15,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       connectString: process.env.CONNECT_STRING,
       autoLoadEntities: true, // 👈 carga todas las entities registradas en los módulos
       synchronize: false, // 👈 evita DDL automático que intenta tocar columnas internas (SYS_NC...)
-      logging: true,
+      logging: false,
     }),
-    EventosModule, 
+    EventosModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }
 
 
 
@@ -33,10 +33,10 @@ export class AppModule {}
       connectString: `${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_SERVICE_NAME}`,
       autoLoadEntities: true, // 👈 carga todas las entities registradas en los módulos
       synchronize: false, // 👈 evita DDL automático que intenta tocar columnas internas (SYS_NC...)
-      logging: true,
+      logging: false,
     }),
-    EventosModule, 
+    EventosModule,
   ],
 })
-export class AppModule {}
- */
+export class AppModule { }
+*/

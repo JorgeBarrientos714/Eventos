@@ -78,11 +78,11 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50 overflow-x-clip">
       <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 md:gap-4 min-w-0">
+        <div className="flex flex-nowrap items-center justify-between gap-3 md:gap-4 min-w-0">
           {/* Logo */}
-          <button 
+          <button
             onClick={() => handleNavClick('home')}
-            className="text-[#0d7d6e] text-xl md:text-2xl tracking-wide flex-shrink-0" 
+            className="text-[#0d7d6e] text-xl md:text-2xl tracking-wide flex-shrink-0"
             style={{ fontWeight: 700 }}
           >
             INPREMA
@@ -97,13 +97,13 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full px-4 py-2 pr-20 rounded-full border border-gray-300 focus:outline-none focus:border-[#0d7d6e] text-sm"
+                className="w-full px-4 py-2 pr-20 rounded-full border-0 bg-gray-200 text-gray-700 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#0d7d6e] text-sm"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={handleClearSearch}
-                  className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors"
+                  className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500 transition-colors"
                   title="Limpiar búsqueda (Esc)"
                 >
                   <X className="w-4 h-4" />
@@ -111,7 +111,7 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
               )}
               <button
                 type="submit"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#0d7d6e]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-[#0d7d6e]"
               >
                 <Search className="w-4 h-4" />
               </button>
@@ -120,43 +120,38 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6 lg:gap-8 min-w-0">
-            <button 
+            <button
               onClick={() => handleNavClick('home')}
-              className={`hover:text-[#0d7d6e] transition-colors ${
-                currentPage === 'home' ? 'text-[#0d7d6e]' : 'text-gray-700'
-              }`}
+              className={`hover:text-[#0d7d6e] transition-colors ${currentPage === 'home' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                }`}
             >
               Inicio
             </button>
-            <button 
+            <button
               onClick={() => handleNavClick('events')}
-              className={`hover:text-[#0d7d6e] transition-colors ${
-                currentPage === 'events' ? 'text-[#0d7d6e]' : 'text-gray-700'
-              }`}
+              className={`hover:text-[#0d7d6e] transition-colors ${currentPage === 'events' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                }`}
             >
               Eventos
             </button>
-            <button 
+            <button
               onClick={() => handleNavClick('my-registrations')}
-              className={`hover:text-[#0d7d6e] transition-colors ${
-                currentPage === 'my-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
-              }`}
+              className={`hover:text-[#0d7d6e] transition-colors ${currentPage === 'my-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                }`}
             >
               Mis inscripciones
             </button>
-            <button 
+            <button
               onClick={() => handleNavClick('cancel-registrations')}
-              className={`hover:text-[#0d7d6e] transition-colors ${
-                currentPage === 'cancel-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
-              }`}
+              className={`hover:text-[#0d7d6e] transition-colors ${currentPage === 'cancel-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                }`}
             >
               Cancelar inscripciones
             </button>
-            <button 
+            <button
               onClick={() => handleNavClick('cancellation-history')}
-              className={`hover:text-[#0d7d6e] transition-colors ${
-                currentPage === 'cancellation-history' ? 'text-[#0d7d6e]' : 'text-gray-700'
-              }`}
+              className={`hover:text-[#0d7d6e] transition-colors ${currentPage === 'cancellation-history' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                }`}
             >
               Historial de cancelaciones
             </button>
@@ -203,16 +198,16 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
                 </button>
               )}
             </div>
-            <Link
+            {/* <Link
               href="/admin/login"
               className="rounded-full border border-[#0d7d6e] px-4 py-1.5 text-sm font-semibold text-[#0d7d6e] transition hover:bg-[#0d7d6e] hover:text-white"
             >
               Iniciar sesión administrativo
-            </Link>
+            </Link> */}
           </nav>
 
           {/* Mobile Menu Button */}
-          <button 
+          <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
             className="md:hidden p-2 text-gray-700 hover:text-[#0d7d6e]"
           >
@@ -273,44 +268,39 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
                 </button>
               )}
             </div>
-            
-            <button 
+
+            <button
               onClick={() => handleNavClick('home')}
-              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${
-                currentPage === 'home' ? 'text-[#0d7d6e]' : 'text-gray-700'
-              }`}
+              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${currentPage === 'home' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                }`}
             >
               Inicio
             </button>
-            <button 
+            <button
               onClick={() => handleNavClick('events')}
-              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${
-                currentPage === 'events' ? 'text-[#0d7d6e]' : 'text-gray-700'
-              }`}
+              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${currentPage === 'events' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                }`}
             >
               Eventos
             </button>
-            <button 
+            <button
               onClick={() => handleNavClick('my-registrations')}
-              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${
-                currentPage === 'my-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
-              }`}
+              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${currentPage === 'my-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                }`}
             >
               Mis inscripciones
             </button>
-            <button 
+            <button
               onClick={() => handleNavClick('cancel-registrations')}
-              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${
-                currentPage === 'cancel-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
-              }`}
+              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${currentPage === 'cancel-registrations' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                }`}
             >
               Cancelar inscripciones
             </button>
-            <button 
+            <button
               onClick={() => handleNavClick('cancellation-history')}
-              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${
-                currentPage === 'cancellation-history' ? 'text-[#0d7d6e]' : 'text-gray-700'
-              }`}
+              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${currentPage === 'cancellation-history' ? 'text-[#0d7d6e]' : 'text-gray-700'
+                }`}
             >
               Historial de cancelaciones
             </button>
@@ -320,7 +310,7 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
                 <ChevronDown className="w-4 h-4" />
               </div>
               <div className="pl-4 space-y-2">
-                <button 
+                <button
                   onClick={() => handleNavClick('carnetizacion')}
                   className="block w-full text-left text-gray-700 hover:text-[#0d7d6e] transition-colors"
                 >
@@ -328,12 +318,12 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
                 </button>
               </div>
             </div>
-            <Link
+            {/*  <Link
               href="/admin/login"
               className="mt-4 inline-flex w-full items-center justify-center rounded-full border border-[#0d7d6e] px-4 py-2 text-sm font-semibold text-[#0d7d6e] transition hover:bg-[#0d7d6e] hover:text-white"
             >
               Iniciar sesión administrativo
-            </Link>
+            </Link> */}
           </nav>
         )}
       </div>

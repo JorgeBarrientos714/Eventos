@@ -1,4 +1,4 @@
-import { Calendar, MapPin, Clock, Ban } from 'lucide-react';
+import { Calendar, MapPin, Clock, Ban, ImageOff } from 'lucide-react';
 import type { Event } from '../types/event';
 import type { Registration } from '../types/teacher';
 
@@ -17,8 +17,8 @@ export function CancellationHistory({ events, cancelledRegistrations, searchQuer
   const filteredEvents = cancelledEvents.filter((event) => {
     if (!searchQuery) return true;
     return event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           event.category.toLowerCase().includes(searchQuery.toLowerCase());
+      event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.category.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   return (
@@ -39,7 +39,7 @@ export function CancellationHistory({ events, cancelledRegistrations, searchQuer
             {searchQuery ? 'No se encontraron resultados' : 'No tienes cancelaciones'}
           </h3>
           <p className="text-gray-600">
-            {searchQuery 
+            {searchQuery
               ? `No hay cancelaciones que coincidan con "${searchQuery}"`
               : 'Cuando canceles una inscripción a un evento o clase, aparecerá aquí.'
             }
@@ -56,12 +56,18 @@ export function CancellationHistory({ events, cancelledRegistrations, searchQuer
               >
                 <div className="flex flex-col md:flex-row">
                   {/* Image */}
-                  <div className="md:w-48 h-48 md:h-auto flex-shrink-0 relative">
-                    <img
-                      src={event.image}
-                      alt={event.title}
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="md:w-48 h-48 md:h-auto flex-shrink-0 relative bg-gray-100">
+                    {event.image ? (
+                      <img
+                        src={event.image}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                        <ImageOff className="w-12 h-12 text-gray-400" />
+                      </div>
+                    )}
                     <div className="absolute top-3 right-3">
                       <span className="px-3 py-1 bg-red-500 text-white text-xs rounded-full" style={{ fontWeight: 600 }}>
                         Cancelado
