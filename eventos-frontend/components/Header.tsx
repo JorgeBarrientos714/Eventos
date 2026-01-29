@@ -127,13 +127,13 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
             >
               Inicio
             </button>
-            <button
+            {/* <button
               onClick={() => handleNavClick('events')}
               className={`hover:text-[#0d7d6e] transition-colors ${currentPage === 'events' ? 'text-[#0d7d6e]' : 'text-gray-700'
                 }`}
             >
               Eventos
-            </button>
+            </button> */}
             {(
               <>
                 <button
@@ -181,7 +181,7 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
                 </div>
               )}
             </div>
-            {/* <div className="flex items-center gap-3 text-sm min-w-0">
+            {<div className="flex items-center gap-3 text-sm min-w-0">
               <div className="flex items-center gap-2 text-gray-600 max-w-[240px] min-w-0">
                 <User className="w-4 h-4 flex-shrink-0" />
                 <span className="truncate" title={docenteNombre || 'No identificado'}>
@@ -201,7 +201,7 @@ export function Header({ currentPage, onNavigate, onSearch, searchQuery: externa
                   Cerrar sesión
                 </button>
               )}
-            </div> */}
+            </div>}
             {/* <Link
               href="/admin/login"
               className="rounded-full border border-[#0d7d6e] px-4 py-1.5 text-sm font-semibold text-[#0d7d6e] transition hover:bg-[#0d7d6e] hover:text-white"

@@ -1,5 +1,6 @@
 import { X, Calendar, Clock, MapPin } from 'lucide-react';
 import type { Event } from '../types/event';
+import { useRouter } from 'next/router';
 
 // Módulo: global/public
 // Función: Modal de detalle de evento con acciones de registro
@@ -16,6 +17,8 @@ interface EventModalProps {
 }
 
 export function EventModal({ event, isRegistered, onClose, onRegister, onCancel, onMoreInfo }: EventModalProps) {
+  const router = useRouter();
+
   return (
     <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
       <div className="bg-white/95 backdrop-blur-sm rounded-xl md:rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -102,7 +105,7 @@ export function EventModal({ event, isRegistered, onClose, onRegister, onCancel,
                   Cancelar
                 </button>
                 <button
-                  onClick={onRegister}
+                  onClick={() => router.push(`/registration/${event.id}`)}
                   className="w-full px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base bg-[#0d7d6e] text-white rounded-full hover:bg-[#0a6357] transition-colors"
                 >
                   Inscribirse ahora
