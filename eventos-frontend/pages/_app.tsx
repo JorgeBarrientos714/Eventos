@@ -8,6 +8,7 @@ import { Exo_2 } from 'next/font/google';
 import { Toaster } from 'sonner';
 import { AdminAuthProvider } from '../context/AdminAuthContext';
 import '../styles/globals.css';
+import { Footer } from '../components/Footer';
 
 const exo = Exo_2({ subsets: ['latin'] });
 
@@ -17,6 +18,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <div className={`site-bg ${exo.className}`}>
         <Toaster position="top-right" richColors />
         <Component {...pageProps} />
+        <Footer />
       </div>
     </AdminAuthProvider>
   );

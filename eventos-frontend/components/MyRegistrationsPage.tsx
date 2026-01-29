@@ -6,7 +6,8 @@
 import { Calendar, MapPin, Clock } from 'lucide-react';
 import type { Event } from '../types/event';
 import type { Registration } from '../types/teacher';
-
+import { useState } from 'react';
+import { docenteAuth } from '../lib/authDocente';
 interface MyRegistrationsProps {
   events: Event[];
   registrations: Registration[];
@@ -17,20 +18,107 @@ export function MyRegistrations({ events, registrations, searchQuery = '' }: MyR
   const registeredEvents = events.filter(event =>
     registrations.some(reg => reg.eventId === event.id)
   ).filter(event => (event.estado || '').toLowerCase() !== 'cancelado');
-
+  const [docenteNombre, setDocenteNombre] = useState<string>('');
+  const [dniInput, setDniInput] = useState<string>('');
   // Filtrar por búsqueda global
   const filteredEvents = registeredEvents.filter((event) => {
     if (!searchQuery) return true;
     return event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           event.category.toLowerCase().includes(searchQuery.toLowerCase());
+      event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.category.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
+
+
       <h1 className="text-3xl md:text-4xl text-[#0d7d6e] mb-8" style={{ fontWeight: 700 }}>
         Mis Inscripciones
       </h1>
+
+      {/* Identificación de Docente */}
+      <div className="mb-10">
+        <div className="">
+          <p className="text-grey/90 mb-6">
+            Ingresa tu DNI para ver tus inscripciones
+          </p>
+
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const dni = dniInput.trim();
+              if (!dni) return;
+
+              try {
+                const res = await docenteAuth.iniciarSesion(dni);
+                setDocenteNombre(res.docente?.nombreCompleto || '');
+                setDniInput('');
+                window.location.reload();
+              } catch (err: any) {
+                alert(err?.message || 'No fue posible identificar al docente');
+              }
+            }}
+            className="flex flex-col sm:flex-row items-center gap-3"
+          >
+            <input
+              type="text"
+              placeholder="Ingresa tu DNI"
+              value={dniInput}
+              onChange={(e) => setDniInput(e.target.value)}
+              className="
+    w-1/2
+    px-4 py-3
+    rounded-full
+    border-0
+    bg-gray-200
+    text-gray-700
+    placeholder-gray-500
+    focus:outline-none
+    focus:bg-gray-200
+    text-base
+  "
+            />
+
+
+            <button
+              type="submit"
+              className="
+    w-full sm:w-auto
+    rounded-full
+    bg-[#0d7d6e]
+    text-white
+    px-6 py-3
+    font-semibold
+    hover:bg-[#0b6a5d]
+    transition
+  "
+            >
+              Buscar
+            </button>
+
+            {docenteNombre && (
+              <button
+                type="button"
+                onClick={() => {
+                  docenteAuth.clearToken();
+                  setDocenteNombre('');
+                  window.location.reload();
+                }}
+                className="w-full sm:w-auto rounded-full border-2 border-white text-white px-6 py-3 font-semibold hover:bg-white/10 transition"
+              >
+                Cambiar docente
+              </button>
+            )}
+          </form>
+
+          {docenteNombre && (
+            <p className="text-white/80 mt-4 text-sm">
+              ✓ Identificado como:{' '}
+              <span className="font-semibold">{docenteNombre}</span>
+            </p>
+          )}
+        </div>
+      </div>
 
       {filteredEvents.length === 0 ? (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 text-center shadow-sm">
@@ -43,7 +131,7 @@ export function MyRegistrations({ events, registrations, searchQuery = '' }: MyR
             {searchQuery ? 'No se encontraron resultados' : 'No tienes inscripciones'}
           </h3>
           <p className="text-gray-600">
-            {searchQuery 
+            {searchQuery
               ? `No hay inscripciones que coincidan con "${searchQuery}"`
               : 'Aún no te has inscrito en ningún evento o clase'
             }
