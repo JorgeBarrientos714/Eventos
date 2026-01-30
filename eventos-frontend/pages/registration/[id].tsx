@@ -13,8 +13,10 @@ export default function RegistrationPage() {
 
   useEffect(() => {
     if (!id || !events.length) return;
-    const found = events.find(e => e.id === String(id));
-    setEvent(found || null);
+    // Solo continuar si id es string (no array)
+    if (typeof id !== 'string') return;
+    const found = events.find(e => e.id === id);
+    setEvent(prev => (prev?.id === found?.id ? prev : found || null));
   }, [id, events]);
 
   const handleNavigate = (page: string) => {
