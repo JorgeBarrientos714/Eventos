@@ -92,7 +92,9 @@ export function AdminEventsPage() {
 
     // Filtro por área
     if (selectedCategory !== 'Todas las áreas') {
-      if (evento.areaNombre !== selectedCategory) return false;
+      const eventoArea = (evento.areaNombre || '').trim().toLowerCase();
+      const selectedArea = selectedCategory.trim().toLowerCase();
+      if (eventoArea !== selectedArea) return false;
     }
 
     // Filtro por búsqueda (coincidencia en nombre, descripción, área)
@@ -160,7 +162,10 @@ export function AdminEventsPage() {
   };
 
   // Obtener categorías únicas
-  const categoriesFromEvents = ['Todas las áreas', ...new Set(eventos.map(e => e.areaNombre))];
+  const categoriesFromEvents = [
+    'Todas las áreas',
+    ...new Set(eventos.map(e => e.areaNombre).filter(Boolean))
+  ];
 
   // Si está mostrando el formulario
   if (isFormOpen) {

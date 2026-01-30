@@ -3,8 +3,6 @@ import { Module } from '@nestjs/common';
 import { EventosModule } from './modulos/eventos/eventos.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-
-
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -13,6 +11,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       password: process.env.DB_PASSWORD,
       // Usa exactamente el connect string provisto en .env para evitar discrepancias de servicio/SID
       connectString: process.env.CONNECT_STRING,
+      schema: process.env.DB_SCHEMA, // 👈 especifica el schema para las consultas
       autoLoadEntities: true, // 👈 carga todas las entities registradas en los módulos
       synchronize: false, // 👈 evita DDL automático que intenta tocar columnas internas (SYS_NC...)
       logging: false,

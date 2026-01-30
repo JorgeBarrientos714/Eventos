@@ -31,7 +31,11 @@ export function Events({ events: eventsProp, registrations, estadosPorEvento = {
     // En otras categorías, opcionalmente se pueden ocultar cancelados si se requiere.
     const isCanceled = (event.estado || '').toLowerCase() === 'cancelado';
     if (selectedCategory !== 'Todas las áreas' && isCanceled) return false;
-    const matchesCategory = selectedCategory === 'Todas las áreas' || event.category === selectedCategory;
+    
+    const eventCategory = (event.category || '').trim().toLowerCase();
+    const selectedCat = selectedCategory.trim().toLowerCase();
+    const matchesCategory = selectedCat === 'todas las áreas' || eventCategory === selectedCat;
+    
     const matchesSearch = !searchQuery ||
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
