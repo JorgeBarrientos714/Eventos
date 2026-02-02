@@ -102,6 +102,7 @@ const mapEventoToEvent = (evento: any): Event => {
     tipoEvento,
     cuposDisponibles: evento?.cuposDisponibles ?? 0,
     cuposTotales: evento?.cuposTotales ?? 0,
+    cuposUsados: evento?.cuposUsados ?? 0,
     cantidadInvPermitidos: evento?.cantidadInvPermitidos ?? 0,
     estado: (evento?.estado ?? evento?.ESTADO ?? '').toString().toLowerCase() || undefined,
   };

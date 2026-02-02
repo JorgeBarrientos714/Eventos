@@ -24,7 +24,7 @@ import { net_usuario_recuperacion } from './entities/net_usuario_recuperacion.en
 import { RegistrarUsuarioDto, LoginUsuarioDto, RecuperarPasswordDto, RestablecerPasswordDto, CambiarPasswordDto } from './dto/auth.dto';
 import { randomBytes, scryptSync, timingSafeEqual, createHmac } from 'crypto';
 
- 
+
 @Injectable()
 export class EventosService {
   constructor(
@@ -380,6 +380,47 @@ export class EventosService {
     return evento;
   }
 
+  private async getCuposUsadosPorEventoIds(eventoIds: number[]): Promise<Map<number, number>> {
+    if (!eventoIds.length) {
+      return new Map();
+    }
+
+    const rows = await this.registroEventoRepository
+      .createQueryBuilder('re')
+      .leftJoin('re.evento', 'evento')
+      .leftJoin('re.estado', 'estado')
+      .select('evento.id', 'idEvento')
+      .addSelect('COUNT(re.id)', 'cuposUsados')
+      .where('evento.id IN (:...ids)', { ids: eventoIds })
+      .andWhere('estado.nombreEstado = :estado', { estado: 'Inscrito' })
+      .groupBy('evento.id')
+      .getRawMany<{ idEvento: string; cuposUsados: string }>();
+
+    const map = new Map<number, number>();
+    for (const row of rows) {
+      map.set(Number(row.idEvento), Number(row.cuposUsados));
+    }
+    return map;
+  }
+
+  private async attachCuposToEventos(eventos: net_eventos[]): Promise<any[]> {
+    const ids = eventos.map((e) => e.id).filter((id) => Number.isFinite(id));
+    const cuposUsadosMap = await this.getCuposUsadosPorEventoIds(ids);
+
+    return eventos.map((e) => {
+      const evento = this.ensureImagenUrl(e) as any;
+      const cuposUsados = cuposUsadosMap.get(e.id) ?? 0;
+      evento.cuposUsados = cuposUsados;
+
+      const totales = e.cuposTotales;
+      if (totales != null) {
+        evento.cuposDisponibles = Math.max(0, (totales ?? 0) - cuposUsados);
+      }
+
+      return evento;
+    });
+  }
+
   private sanitizeUsuario(usuario?: net_usuario | null) {
     if (!usuario) {
       return null;
@@ -696,7 +737,7 @@ export class EventosService {
       relations: ['municipio', 'municipio.departamento', 'clase', 'clase.area', 'regional'],
       order: { fechaInicio: 'DESC' }
     });
-    return eventos.map((e) => this.ensureImagenUrl(e));
+    return this.attachCuposToEventos(eventos);
   }
 
   // Filtrar eventos por ÁREA
@@ -711,7 +752,7 @@ export class EventosService {
       .where('area.id = :idArea', { idArea })
       .orderBy('evento.fechaInicio', 'DESC')
       .getMany();
-    return eventos.map((e) => this.ensureImagenUrl(e));
+    return this.attachCuposToEventos(eventos);
   }
 
   async filtrarEventosPorUsuario(idUsuario: number) {
@@ -742,7 +783,8 @@ export class EventosService {
       throw new NotFoundException(`No existe un evento con el ID ${id}`);
     }
 
-    return this.ensureImagenUrl(evento);
+    const [enriched] = await this.attachCuposToEventos([evento]);
+    return enriched;
   }
 
   // Actualizar evento
@@ -752,7 +794,7 @@ export class EventosService {
       where: { id },
       relations: ['municipio', 'municipio.departamento', 'clase', 'clase.area', 'regional', 'registros', 'registros.docente', 'registros.estado']
     });
-    
+
     if (!eventoRaw) {
       throw new NotFoundException(`Evento con ID ${id} no encontrado`);
     }
@@ -777,7 +819,7 @@ export class EventosService {
       idUsuario: (eventoRaw as any).idUsuario,
       idRegional: (eventoRaw as any).idRegional,
       cantidadInvPermitidos: (eventoRaw as any).cantidadInvPermitidos,
-      
+
       // Sobrescribir con datos nuevos si se proporcionan
       ...updateData,
     };
@@ -810,10 +852,10 @@ export class EventosService {
     delete (dto as any).imagenBase64;
 
     // Limpiar valores undefined y campos que no son columnas de BD
-    const fieldNames = ['nombreEvento', 'descripcion', 'tipoEvento', 'idClase', 'diasSemana', 'idMunicipio', 
-                        'direccion', 'fechaInicio', 'fechaFin', 'horaInicio', 'horaFin', 'cuposDisponibles',
-                        'cuposTotales', 'imagenBlob', 'imagenMime', 'idUsuario', 'idRegional', 'cantidadInvPermitidos'];
-    
+    const fieldNames = ['nombreEvento', 'descripcion', 'tipoEvento', 'idClase', 'diasSemana', 'idMunicipio',
+      'direccion', 'fechaInicio', 'fechaFin', 'horaInicio', 'horaFin', 'cuposDisponibles',
+      'cuposTotales', 'imagenBlob', 'imagenMime', 'idUsuario', 'idRegional', 'cantidadInvPermitidos'];
+
     Object.keys(dto).forEach(key => {
       if (dto[key] === undefined || !fieldNames.includes(key)) {
         delete dto[key];
@@ -825,12 +867,12 @@ export class EventosService {
       return this.buscarEventoPorId(id);
     } catch (error: any) {
       console.error('Error actualizando evento:', error);
-      
+
       // Manejo específico de errores de integridad referencial
       if (error.code === 'ORA-02291' || error.message?.includes('ORA-02291')) {
         throw new BadRequestException('Error: Datos relacionados no válidos. Verifique que el municipio, clase y otros datos referenciados existan en la base de datos.');
       }
-      
+
       throw error;
     }
   }
@@ -1095,10 +1137,10 @@ export class EventosService {
         : undefined,
       aldea: docente.aldea
         ? {
-            id: docente.aldea.id,
-            nombreAldea: docente.aldea.nombreAldea,
-            idMunicipio: docente.aldea.idMunicipio,
-          }
+          id: docente.aldea.id,
+          nombreAldea: docente.aldea.nombreAldea,
+          idMunicipio: docente.aldea.idMunicipio,
+        }
         : undefined,
       grupoEtnico: docente.grupoEtnico
         ? { id: docente.grupoEtnico.id, nombre: docente.grupoEtnico.nombreGrupoEtnico }
@@ -1170,8 +1212,8 @@ export class EventosService {
       maxInvitados,
       invitadosFaltantes,
       puedeAgregarInvitados: invitadosFaltantes > 0,
-      mensaje: invitadosFaltantes > 0 
-        ? `Puede registrar ${invitadosFaltantes} invitado(s) más` 
+      mensaje: invitadosFaltantes > 0
+        ? `Puede registrar ${invitadosFaltantes} invitado(s) más`
         : 'Ya completó su cupo de invitados',
     };
   }

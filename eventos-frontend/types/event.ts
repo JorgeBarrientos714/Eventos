@@ -13,6 +13,7 @@ export interface Event {
   tipoEvento?: 'evento' | 'clase';
   cuposDisponibles?: number;
   cuposTotales?: number;
+  cuposUsados?: number;
   cantidadInvPermitidos?: number;
   estado?: string; // activo | pospuesto | cancelado
 }
