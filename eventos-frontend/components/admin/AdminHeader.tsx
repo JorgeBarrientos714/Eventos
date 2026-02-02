@@ -5,7 +5,7 @@
 // Notas: Basado en Header.tsx pero adaptado para panel administrativo
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
-import { Menu, User, ChevronDown, LogOut, Settings, Search } from 'lucide-react';
+import { Menu, User, ChevronDown, LogOut, Settings, Search, X } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 
 interface AdminHeaderProps {
@@ -49,6 +49,29 @@ export function AdminHeader({ currentPage, onNavigate, searchQuery = '', onSearc
     setShowModulesMenu(false);
   };
 
+  // Buscador: filtra solo en la página actual, no redirige
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onSearch) {
+      onSearch(localSearchQuery.trim());
+    }
+  };
+
+  // Limpiar búsqueda y mostrar todos los resultados
+  const handleClearSearch = () => {
+    setLocalSearchQuery('');
+    if (onSearch) {
+      onSearch('');
+    }
+  };
+
+  // Manejar tecla Escape para limpiar
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      handleClearSearch();
+    }
+  };
+
   const handleSearchChange = (value: string) => {
     setLocalSearchQuery(value);
     if (onSearch) {
@@ -66,7 +89,6 @@ export function AdminHeader({ currentPage, onNavigate, searchQuery = '', onSearc
     if (filter === 'all') {
       handleNavClick('eventos');
     } else {
-      // Navegar con query param para filtro
       router.push(`/admin/eventos?filter=${filter}`);
     }
     setShowModulesMenu(false);
@@ -87,34 +109,45 @@ export function AdminHeader({ currentPage, onNavigate, searchQuery = '', onSearc
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6 lg:gap-8 min-w-0 flex-1">
+            {/* Buscador */}
+            <form onSubmit={handleSearch} className="relative flex-1 max-w-md">
+              <input
+                type="text"
+                placeholder="Buscar eventos, clases, área..."
+                className="w-full px-4 py-2 pr-20 rounded-full border-0 bg-gray-200 text-gray-700 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#0d7d6e] text-sm"
+                value={localSearchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+              {localSearchQuery && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500 transition-colors"
+                  title="Limpiar búsqueda (Esc)"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                type="submit"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-[#0d7d6e]"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </form>
             <button
               onClick={() => handleNavClick('home')}
-              className={`hover:text-[#0d7d6e] transition-colors ${
-                currentPage === 'home' ? 'text-[#0d7d6e]' : 'text-gray-700'
-              }`}
+              className={`hover:text-[#0d7d6e] transition-colors ${currentPage === 'home' ? 'text-[#0d7d6e]' : 'text-gray-700'}`}
             >
               Inicio
             </button>
             <button
               onClick={() => handleNavClick('eventos')}
-              className={`hover:text-[#0d7d6e] transition-colors ${
-                currentPage === 'eventos' ? 'text-[#0d7d6e]' : 'text-gray-700'
-              }`}
+              className={`hover:text-[#0d7d6e] transition-colors ${currentPage === 'eventos' ? 'text-[#0d7d6e]' : 'text-gray-700'}`}
             >
               Gestión de Eventos
             </button>
-
-            {/* Buscador */}
-            <div className="relative flex-1 max-w-md">
-              <input
-                type="text"
-                placeholder="Buscar eventos"
-                className="w-full px-4 py-2 pr-10 rounded-full border-0 bg-gray-200 text-gray-700 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#0d7d6e] text-sm"
-                value={localSearchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-              />
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-            </div>
 
             {/* Menú Módulos */}
             <div className="relative ml-auto" ref={modulesRef}>
@@ -160,7 +193,6 @@ export function AdminHeader({ currentPage, onNavigate, searchQuery = '', onSearc
                   <button
                     onClick={() => {
                       setShowModulesMenu(false);
-                      // TODO: Implementar configuración
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-400 cursor-not-allowed flex items-center gap-2"
                     disabled
@@ -202,16 +234,32 @@ export function AdminHeader({ currentPage, onNavigate, searchQuery = '', onSearc
         {showMobileMenu && (
           <nav className="md:hidden mt-4 pt-4 border-t space-y-3">
             {/* Buscador móvil */}
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative mb-3">
               <input
                 type="text"
-                placeholder="Buscar eventos"
-                className="w-full px-4 py-2 pr-10 rounded-full border-0 bg-gray-200 text-gray-700 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#0d7d6e] text-sm"
+                placeholder="Buscar eventos, clases, área..."
+                className="w-full px-4 py-2 pr-20 rounded-full border-0 bg-gray-200 text-gray-700 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#0d7d6e] text-sm"
                 value={localSearchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
+                onKeyDown={handleKeyDown}
               />
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-            </div>
+              {localSearchQuery && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500 transition-colors"
+                  title="Limpiar búsqueda (Esc)"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                type="submit"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-[#0d7d6e]"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </form>
 
             {/* Info del usuario en móvil */}
             <div className="flex items-center gap-2 text-sm py-2 border-b border-gray-100">
@@ -226,17 +274,13 @@ export function AdminHeader({ currentPage, onNavigate, searchQuery = '', onSearc
 
             <button
               onClick={() => handleNavClick('home')}
-              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${
-                currentPage === 'home' ? 'text-[#0d7d6e]' : 'text-gray-700'
-              }`}
+              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${currentPage === 'home' ? 'text-[#0d7d6e]' : 'text-gray-700'}`}
             >
               Inicio
             </button>
             <button
               onClick={() => handleNavClick('eventos')}
-              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${
-                currentPage === 'eventos' ? 'text-[#0d7d6e]' : 'text-gray-700'
-              }`}
+              className={`block w-full text-left hover:text-[#0d7d6e] transition-colors ${currentPage === 'eventos' ? 'text-[#0d7d6e]' : 'text-gray-700'}`}
             >
               Gestión de Eventos
             </button>

@@ -19,18 +19,47 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-const formatDate = (dateStr?: string | Date): string => {
-  if (!dateStr) return '';
-  const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-  if (Number.isNaN(date.getTime())) return '';
+const parseDateParts = (dateStr?: string | Date): { year: number; month: number; day: number } | null => {
+  if (!dateStr) return null;
+  if (dateStr instanceof Date) {
+    if (Number.isNaN(dateStr.getTime())) return null;
+    return { year: dateStr.getFullYear(), month: dateStr.getMonth() + 1, day: dateStr.getDate() };
+  }
 
+  const str = dateStr.toString().trim();
+
+  const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    return { year: Number(isoMatch[1]), month: Number(isoMatch[2]), day: Number(isoMatch[3]) };
+  }
+
+  const dmyMatch = str.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})/);
+  if (dmyMatch) {
+    return { day: Number(dmyMatch[1]), month: Number(dmyMatch[2]), year: Number(dmyMatch[3]) };
+  }
+
+  const date = new Date(str);
+  if (Number.isNaN(date.getTime())) return null;
+  const useUTC = /T/.test(str) || /Z/.test(str);
+  return {
+    year: useUTC ? date.getUTCFullYear() : date.getFullYear(),
+    month: (useUTC ? date.getUTCMonth() : date.getMonth()) + 1,
+    day: useUTC ? date.getUTCDate() : date.getDate(),
+  };
+};
+
+const formatDate = (dateStr?: string | Date): string => {
+  const parts = parseDateParts(dateStr);
+  if (!parts) return '';
+
+  const date = new Date(parts.year, parts.month - 1, parts.day);
   const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
   const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
   const diaSemana = dias[date.getDay()];
-  const dia = date.getDate();
-  const mes = meses[date.getMonth()];
-  const anio = date.getFullYear();
+  const dia = parts.day;
+  const mes = meses[parts.month - 1];
+  const anio = parts.year;
 
   return `${diaSemana} ${dia} de ${mes} del ${anio}`;
 };
@@ -60,6 +89,8 @@ const mapEventoToEvent = (evento: any): Event => {
     description: evento?.descripcion ?? 'Sin descripción',
     date: formatDate(evento?.fechaInicio),
     time: `${evento?.horaInicio ?? '00:00'} - ${evento?.horaFin ?? '00:00'}`,
+    startDate: evento?.fechaInicio ?? evento?.FECHA_INICIO,
+    startTime: evento?.horaInicio ?? evento?.HORA_INICIO,
     location: [
       departamento?.nombres ?? '',
       municipio?.nombres ?? municipio?.NOMBRES_MUNICIPIO ?? '',

@@ -56,6 +56,7 @@ export function EventModal({ event, isRegistered, onClose, onRegister, onCancel,
             </div>
           )}
 
+
           {/* Description */}
           <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6 leading-relaxed">
             {event.description}

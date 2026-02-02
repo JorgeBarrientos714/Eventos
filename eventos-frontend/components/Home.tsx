@@ -47,6 +47,27 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
   const [docenteNombre, setDocenteNombre] = useState<string>('');
   const [dniInput, setDniInput] = useState<string>('');
 
+  // Determinar si estamos en página de admin o docente por la ruta actual
+  const isAdminPage = router.pathname.includes('/admin/');
+
+  // Función para navegar a eventos con filtro
+  const handleViewAllEvents = () => {
+    if (isAdminPage) {
+      router.push('/admin/eventos?filter=eventos');
+    } else {
+      router.push('/events?filter=eventos');
+    }
+  };
+
+  // Función para navegar a clases con filtro
+  const handleViewAllClasses = () => {
+    if (isAdminPage) {
+      router.push('/admin/eventos?filter=clases');
+    } else {
+      router.push('/events?filter=clases');
+    }
+  };
+
   useEffect(() => {
     async function loadData() {
       setLoading(true);
@@ -303,7 +324,7 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
       <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 mt-6">
         <div className="flex justify-between items-center">
           <button
-            onClick={() => router.push('/events')}
+            onClick={handleViewAllEvents}
             className="px-6 py-2 bg-[#0d7d6e] text-white rounded-full font-semibold hover:bg-[#0a6357] transition-colors"
           >
             Ver todos los eventos
@@ -414,7 +435,7 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
       <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 mt-6">
         <div className="flex justify-between items-center">
           <button
-            onClick={() => router.push('/events')}
+            onClick={handleViewAllClasses}
             className="px-6 py-2 bg-[#0d7d6e] text-white rounded-full font-semibold hover:bg-[#0a6357] transition-colors"
           >
             Ver todas las clases

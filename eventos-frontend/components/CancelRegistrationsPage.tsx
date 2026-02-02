@@ -3,6 +3,63 @@ import { Calendar, MapPin, Clock, AlertTriangle } from 'lucide-react';
 import type { Event } from '../types/event';
 import type { Registration } from '../types/teacher';
 
+const parseDateParts = (dateStr?: string): { year: number; month: number; day: number } | null => {
+  if (!dateStr) return null;
+  const str = dateStr.toString().trim();
+
+  const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    return { year: Number(isoMatch[1]), month: Number(isoMatch[2]), day: Number(isoMatch[3]) };
+  }
+
+  const dmyMatch = str.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})/);
+  if (dmyMatch) {
+    return { day: Number(dmyMatch[1]), month: Number(dmyMatch[2]), year: Number(dmyMatch[3]) };
+  }
+
+  const date = new Date(str);
+  if (Number.isNaN(date.getTime())) return null;
+  const useUTC = /T/.test(str) || /Z/.test(str);
+  return {
+    year: useUTC ? date.getUTCFullYear() : date.getFullYear(),
+    month: (useUTC ? date.getUTCMonth() : date.getMonth()) + 1,
+    day: useUTC ? date.getUTCDate() : date.getDate(),
+  };
+};
+
+const parseTimeParts = (timeStr?: string): { hours: number; minutes: number } | null => {
+  if (!timeStr) return null;
+  const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  return { hours: Number(match[1]), minutes: Number(match[2]) };
+};
+
+// Bloquear cancelación si faltan 48 horas o menos
+const isWithin48Hours = (eventDate?: string, eventTime?: string): boolean => {
+  try {
+    const dateParts = parseDateParts(eventDate);
+    if (!dateParts) return false;
+
+    const startTime = eventTime?.split('-')[0]?.trim();
+    const timeParts = parseTimeParts(startTime) ?? { hours: 0, minutes: 0 };
+
+    const eventDateTime = new Date(
+      dateParts.year,
+      dateParts.month - 1,
+      dateParts.day,
+      timeParts.hours,
+      timeParts.minutes,
+      0,
+      0
+    );
+
+    const diffHours = (eventDateTime.getTime() - Date.now()) / (1000 * 60 * 60);
+    return diffHours <= 48;
+  } catch {
+    return false;
+  }
+};
+
 interface CancelRegistrationsProps {
   events: Event[];
   registrations: Registration[];
@@ -102,13 +159,24 @@ export function CancelRegistrations({ events, registrations, onCancel, searchQue
                       })}
                     </p>
                   )}
-                  <button
-                    onClick={() => handleCancelClick(event)}
-                    className="w-full px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                    style={{ fontWeight: 600 }}
-                  >
-                    Cancelar Inscripción
-                  </button>
+                  {(() => {
+                    const isBlocked = isWithin48Hours(event.startDate ?? event.date, event.startTime ?? event.time);
+                    return (
+                      <button
+                        onClick={() => handleCancelClick(event)}
+                        disabled={isBlocked}
+                        className={`w-full px-4 py-2 rounded-full transition-colors ${
+                          isBlocked
+                            ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                            : 'bg-red-600 text-white hover:bg-red-700'
+                        }`}
+                        style={{ fontWeight: 600 }}
+                        title={isBlocked ? 'La cancelación se bloquea 48 horas antes del evento' : undefined}
+                      >
+                        {isBlocked ? 'Cancelación cerrada' : 'Cancelar Inscripción'}
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             );

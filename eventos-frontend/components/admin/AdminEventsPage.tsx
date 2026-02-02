@@ -81,6 +81,8 @@ export function AdminEventsPage() {
     }
   };
 
+
+
   // Aplicar filtros
   const filteredEventos = eventos.filter((evento) => {
     // Filtro por tipo (eventos/clases)
@@ -104,7 +106,7 @@ export function AdminEventsPage() {
       const matchDescripcion = evento.descripcion?.toLowerCase().includes(query);
       const matchArea = evento.areaNombre?.toLowerCase().includes(query);
       const matchRegional = evento.regional?.toLowerCase().includes(query);
-      
+
       if (!matchNombre && !matchDescripcion && !matchArea && !matchRegional) {
         return false;
       }
@@ -214,8 +216,8 @@ export function AdminEventsPage() {
           backgroundSize: 'cover',
         }}
       >
-        <AdminHeader 
-          currentPage={currentPage} 
+        <AdminHeader
+          currentPage={currentPage}
           onNavigate={handleNavigate}
           searchQuery={searchQuery}
           onSearch={setSearchQuery}
@@ -249,11 +251,6 @@ export function AdminEventsPage() {
             </div>
 
             {/* Hero Banner */}
-            <div className="max-w-[1200px] mx-auto mb-6 md:mb-8">
-              <HeroBanner events={eventos.slice(0, 4).map(mapAdminEventToEvent)} />
-            </div>
-
-            {/* Events Grid */}
             <div className="max-w-[1200px] mx-auto">
               {loading ? (
                 <div className="flex justify-center items-center py-12">
@@ -266,13 +263,15 @@ export function AdminEventsPage() {
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 text-center shadow-sm">
                   <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
                     <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                   </div>
                   <h3 className="text-xl text-gray-800 mb-2" style={{ fontWeight: 600 }}>
-                    No hay eventos disponibles
+                    No se encontraron resultados
                   </h3>
-                  <p className="text-gray-600">Crea tu primer evento para comenzar</p>
+                  <p className="text-gray-600">
+                    No hay eventos o clases que coincidan con "{searchQuery}"
+                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -347,11 +346,10 @@ function AdminSidebar({
               <button
                 key={category}
                 onClick={() => onSelectCategory(category)}
-                className={`block w-full text-left px-3 py-2 rounded-lg transition-colors ${
-                  selectedCategory === category
+                className={`block w-full text-left px-3 py-2 rounded-lg transition-colors ${selectedCategory === category
                     ? 'bg-[#0d7d6e]/90 text-white backdrop-blur-sm'
                     : 'text-gray-700 hover:bg-white/60'
-                }`}
+                  }`}
               >
                 {category}
               </button>
@@ -385,11 +383,10 @@ function AdminSidebar({
                     onSelectCategory(category);
                     onClose();
                   }}
-                  className={`block w-full text-left px-3 py-2 rounded-lg transition-colors ${
-                    selectedCategory === category
+                  className={`block w-full text-left px-3 py-2 rounded-lg transition-colors ${selectedCategory === category
                       ? 'bg-[#0d7d6e]/90 text-white backdrop-blur-sm'
                       : 'text-gray-700 hover:bg-white/60'
-                  }`}
+                    }`}
                 >
                   {category}
                 </button>

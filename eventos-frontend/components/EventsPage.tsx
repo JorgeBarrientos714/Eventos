@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Filter } from 'lucide-react';
+import { useRouter } from 'next/router';
 import { Sidebar } from './Sidebar';
 import { EventCard } from './EventCard';
 import { HeroBanner } from './HeroBanner';
@@ -19,14 +20,34 @@ interface EventsProps {
 }
 
 export function Events({ events: eventsProp, registrations, estadosPorEvento = {}, onRegisterClick, onMoreInfo, searchQuery = '' }: EventsProps) {
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string>('Todas las áreas');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [filterType, setFilterType] = useState<'all' | 'eventos' | 'clases'>('all');
+  
   // Usar SWR para cachear eventos
   const { events, isLoading } = useAllEvents();
 
-  // Filtrar eventos por categoría y búsqueda global
+  // Detectar filtro de la URL
+  useEffect(() => {
+    if (router.query.filter) {
+      const filter = router.query.filter as string;
+      if (filter === 'eventos' || filter === 'clases') {
+        setFilterType(filter);
+      }
+    }
+  }, [router.query.filter]);
+
+  // Filtrar eventos por categoría, búsqueda y tipo
   const filteredEvents = events.filter((event) => {
+    // Aplicar filtro de tipo (eventos/clases)
+    const normalizeTipo = (tipo?: string) => (tipo ?? '').toString().toLowerCase();
+    const tipoEvento = normalizeTipo(event.tipoEvento);
+    
+    if (filterType === 'eventos' && tipoEvento === 'clase') return false;
+    if (filterType === 'clases' && tipoEvento !== 'clase') return false;
+
     // Mostrar todos los estados cuando la categoría seleccionada es "Todas las áreas"
     // En otras categorías, opcionalmente se pueden ocultar cancelados si se requiere.
     const isCanceled = (event.estado || '').toLowerCase() === 'cancelado';
