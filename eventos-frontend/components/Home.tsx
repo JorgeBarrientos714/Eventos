@@ -13,6 +13,7 @@ import { docenteAuth } from '../lib/authDocente';
 import FondoPanel from '../assets/Fondo Panel.jpg';
 import PersonasPanel from '../assets/Personas panel.png';
 import BannerInprema from '../assets/Banner (1).svg';
+import { useRouter } from 'next/router';
 
 interface HomeProps {
   onNavigate?: (page: string) => void;
@@ -37,6 +38,7 @@ const announcements = [
 ];
 
 export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
+  const router = useRouter();
   const [upcomingEvents, setUpcomingEvents] = useState<Array<{ id: string | number; title: string; area: string; image: string }>>([]);
   const [classesData, setClassesData] = useState<Array<{ id: string | number; title: string; area: string; image: string }>>([]);
   const [loading, setLoading] = useState(true);
@@ -103,9 +105,6 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
   const hasResults = filteredUpcomingEvents.length > 0 || filteredClasses.length > 0;
 
   return (
-
-
-
     <div className="pb-0 pt-0">
       <div className="flex justify-center">
         <div className="relative w-full max-w-[1400px]">
@@ -301,6 +300,16 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
           </div>
         </div>
       </section>
+      <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 mt-6">
+        <div className="flex justify-between items-center">
+          <button
+            onClick={() => router.push('/events')}
+            className="px-6 py-2 bg-[#0d7d6e] text-white rounded-full font-semibold hover:bg-[#0a6357] transition-colors"
+          >
+            Ver todos los eventos
+          </button>
+        </div>
+      </div>
 
 
 
@@ -402,6 +411,16 @@ export function Home({ onNavigate, searchQuery = '', events = [] }: HomeProps) {
           </div>
         </div>
       </section>
+      <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 mt-6">
+        <div className="flex justify-between items-center">
+          <button
+            onClick={() => router.push('/events')}
+            className="px-6 py-2 bg-[#0d7d6e] text-white rounded-full font-semibold hover:bg-[#0a6357] transition-colors"
+          >
+            Ver todas las clases
+          </button>
+        </div>
+      </div>
 
       {/* Avisos */}
       <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-8 pb-12">
